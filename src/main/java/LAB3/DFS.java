@@ -127,10 +127,27 @@ public class DFS
         }
     }
 
+    //TODO: Eunice
     public void mv(String oldName, String newName) throws Exception
     {
         // TODO:  Change the name in json_testing.Metadata
-        // Write json_testing.Metadata
+        // Write json_testing.Metadata //should happen in write
+
+        //check that the file with specified name exists and update it
+        Metadata metadata = readMetaData();
+        for(MetaFile file : metadata.metafiles){
+            if(file.getName().equals(oldName)){
+                file.setName(newName);
+            }
+        }
+
+        //write it back to the file
+        try{
+            writeMetaData(metadata);
+        }catch(FileNotFoundException fnfe){
+
+            System.out.println("File not found! Write was unsuccessful");
+        }
     }
 
 
@@ -162,10 +179,16 @@ public class DFS
         // Write json_testing.Metadata
     }
 
+    //TODO: Eunice
     public Byte[] read(String fileName, int pageNumber) throws Exception
     {
         // TODO: read pageNumber from fileName
-        return null;
+        // Does this mean read from the page specified?
+        Metadata metadata = readMetaData();
+        Long page = metadata.getPage(fileName, pageNumber); // get actual page object?
+        return null; // return data with chord?
+
+
     }
 
 
