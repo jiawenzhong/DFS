@@ -1,9 +1,12 @@
 package LAB3;
 
+import com.google.gson.Gson;
+import com.google.gson.stream.JsonReader;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
 import java.io.*;
+import java.nio.charset.Charset;
 import java.nio.file.*;
 import java.math.BigInteger;
 import java.security.*;
@@ -86,31 +89,32 @@ public class DFS
     public Metadata readMetaData() throws Exception
     {
         Metadata metadata = new Metadata();
-        // make json reader
-        JSONParser parser = new JSONParser();
-        //make json object
-        JSONObject object = null;
-        long guid = md5("json_testing.Metadata");
+        Gson gson = new Gson();
+        long guid = md5("Metadata.json");
         LAB3.ChordMessageInterface peer = chord.locateSuccessor(guid);
+
+        //writeMetaData(metadata);
+
         InputStream metadataraw = peer.get(guid);
-        //parser = Json.createParser(metadataraw);
-        //read the inputstream
-        InputStreamReader reader = new InputStreamReader(metadataraw);
-        object = (JSONObject) parser.parse(reader);
-        return new Metadata(object);
+        JsonReader jsonReader = new JsonReader(new InputStreamReader(metadataraw));
+        metadata = gson.fromJson(jsonReader, Metadata.class);
+
+        return metadata;
     }
 
     public void writeMetaData(Metadata metadata) throws Exception
     {
         //TODO: JsonObject j = metadata.createJson() returns Json and
         //TODO: store in InputStream or file
-        JSONObject j = metadata.createJson();//get the json object from the metadata
-        writeJsonToFile(j);//write to a text file
-        long guid = md5("json_testing.Metadata");
+        //JSONObject j = metadata.createJson();//get the json object from the metadata
+        Gson gson = new Gson();
+        //writeJsonToFile(gson);//write to a text file
+        long guid = md5("Metadata.json");
         LAB3.ChordMessageInterface peer = chord.locateSuccessor(guid);
         //store into an inputstream
-        File file = new File("jsonfile.json");
-        InputStream  stream = new FileInputStream(file);
+        //File file = new File("jsonfile.json");
+        String jsonString = gson.toJson(metadata);
+        InputStream stream = new ByteArrayInputStream(jsonString.getBytes(Charset.forName("UTF-8")));
 
         peer.put(guid, stream);
     }
@@ -126,29 +130,29 @@ public class DFS
             System.out.println("Successfully Copied JSON Object to File...");
         }
     }
-
-    //TODO: Eunice
-    public void mv(String oldName, String newName) throws Exception
-    {
-        // TODO:  Change the name in json_testing.Metadata
-        // Write json_testing.Metadata //should happen in write
-
-        //check that the file with specified name exists and update it
-        Metadata metadata = readMetaData();
-        for(MetaFile file : metadata.metafiles){
-            if(file.getName().equals(oldName)){
-                file.setName(newName);
-            }
-        }
-
-        //write it back to the file
-        try{
-            writeMetaData(metadata);
-        }catch(FileNotFoundException fnfe){
-
-            System.out.println("File not found! Write was unsuccessful");
-        }
-    }
+//
+//    //TODO: Eunice
+//    public void mv(String oldName, String newName) throws Exception
+//    {
+//        // TODO:  Change the name in json_testing.Metadata
+//        // Write json_testing.Metadata //should happen in write
+//
+//        //check that the file with specified name exists and update it
+//        Metadata metadata = readMetaData();
+//        for(MetaFile file : metadata.metafiles){
+//            if(file.getName().equals(oldName)){
+//                file.setName(newName);
+//            }
+//        }
+//
+//        //write it back to the file
+//        try{
+//            writeMetaData(metadata);
+//        }catch(FileNotFoundException fnfe){
+//
+//            System.out.println("File not found! Write was unsuccessful");
+//        }
+//    }
 
 
     public String ls() throws Exception
@@ -179,17 +183,17 @@ public class DFS
         // Write json_testing.Metadata
     }
 
-    //TODO: Eunice
-    public Byte[] read(String fileName, int pageNumber) throws Exception
-    {
-        // TODO: read pageNumber from fileName
-        // Does this mean read from the page specified?
-        Metadata metadata = readMetaData();
-        Long page = metadata.getPage(fileName, pageNumber); // get actual page object?
-        return null; // return data with chord?
-
-
-    }
+//    //TODO: Eunice
+//    public Byte[] read(String fileName, int pageNumber) throws Exception
+//    {
+//        // TODO: read pageNumber from fileName
+//        // Does this mean read from the page specified?
+//        Metadata metadata = readMetaData();
+//        Long page = metadata.getPage(fileName, pageNumber); // get actual page object?
+//        return null; // return data with chord?
+//
+//
+//    }
 
 
     public Byte[] tail(String fileName) throws Exception

@@ -11,8 +11,7 @@ public class Test {
         // menu
 
     }
-
-   static public void main(String args[]) throws Exception {
+    public static void main(String args[]) throws Exception {
         Metadata metadata = new Metadata();
         metadata.addFile("testFile", 0L);
         metadata.addFile("testFile2", 0L);
@@ -24,8 +23,12 @@ public class Test {
         metadata.addPageToFile("testFile2", 25L, 4L);
 
         //TODO: test the json here
-        Test test = new Test(1);
+        Test test = new Test(6004);
         test.dfs.writeMetaData(metadata);
         System.out.println(metadata.getListOfNames());
-    }
+
+//        Metadata m = test.dfs.readMetaData();
+//        System.out.println(metadata.getListOfNames());
+
+   }
 }
