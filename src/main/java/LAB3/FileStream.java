@@ -22,8 +22,13 @@ public class FileStream extends InputStream implements Serializable {
       fileInputStream.close();	
       currentPosition = 0;	  
     }
-    
-    public  FileStream() throws FileNotFoundException    {
+
+    public Long getSize(){
+        return Long.valueOf(size);
+    }
+
+    //FIXME: ask J
+    public FileStream() throws FileNotFoundException    {
       currentPosition = 0;	  
     }
     

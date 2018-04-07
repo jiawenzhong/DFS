@@ -153,10 +153,10 @@ class MetaFile implements Serializable
     /**
      * retrieves a page specified
      * @param page to be retrieved
-     * @return page id
+     * @return page id TODO: validate
      */
     public Long getPage(int page){
-        return pages.get(page).getGuid();
+        return pages.get(page - 1).getGuid();
     }
 
     /**
@@ -259,6 +259,15 @@ public class Metadata implements Serializable
         this.metafiles.add(metafile);
     }
 
+    public MetaFile getFileByName(String fileName){
+        for(MetaFile f : metafiles){
+            if(f.getName().equals(fileName)){
+                return f;
+            }
+        }
+        return null;//do exception
+    }
+
     /**
      * Returns the list of names of all the files in 1 string
      * @return string of files
@@ -292,7 +301,7 @@ public class Metadata implements Serializable
      * @return id of the page
      */
       public Long getHead(String fileName){
-          return getPage(fileName, 0);
+          return getPage(fileName, 1);
       }
 
     /**
@@ -318,7 +327,7 @@ public class Metadata implements Serializable
       public void addPageToFile(String fileName, Long length, Long guid){
           for(MetaFile f : metafiles){
           if(f.getName().equals(fileName)){
-              Page p = new Page(length, guid);
+              Page p = new Page(guid, length);
               f.addPage(p);
               f.setLength(f.getLength() + length);
           }
