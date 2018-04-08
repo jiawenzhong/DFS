@@ -1,8 +1,5 @@
 package LAB3;
 
-
-import com.oracle.tools.packager.IOUtils;
-
 import java.io.*;
 import java.util.Scanner;
 
@@ -11,12 +8,7 @@ public class Client
     DFS dfs;
     public Client(int p) throws Exception {
         dfs = new DFS(p);
-
     }
-
-//    public void writeMetadata(){
-//        dfs.writeMetaData();
-//    }
 
     public String readPageContents(String file, InputStream stream){
         String contents = "";
@@ -48,7 +40,7 @@ public class Client
         if (args.length < 1 ) {
             throw new IllegalArgumentException("Parameter: <port>");
         }
-//
+//        TODO: this used to create the file the first time around
 //        Metadata metadata = new Metadata();
 //        metadata.addFile("testFile", 0L);
 //        metadata.addFile("testFile2", 0L);
@@ -110,32 +102,17 @@ public class Client
                     stream = client.dfs.read(fileName, pageNum);
                     String file = "./"+ fileName + pageNum;
                     client.readPageContents(file, stream);
-
-
-
-
-//                    InputStreamReader r = new InputStreamReader(stream);
-//                    BufferedReader reader = new BufferedReader(r);
-//                    System.out.println("Read Case: " + reader);
-//
-//
-//                    StringBuilder sb = new StringBuilder();
-//                    while (stream.available() > 0)
-//                        sb.append(stream.read());
-//                        System.out.print("Read: " + sb.toString());
                     break;
                 case "tail":
                     fileName = array[1];
                     stream = client.dfs.tail(fileName);
                     client.readPageContents(fileName, stream);
-
                     break;
                 case "head":
                     fileName = array[1];
                     stream = client.dfs.head(fileName);
                     String f = "./"+ fileName;
                     client.readPageContents(f, stream);
-
                     break;
                 case "append":
                     fileName = array[1];
@@ -151,10 +128,6 @@ public class Client
                     break;
 
             }
-
         }
-
-
     }
-
 }

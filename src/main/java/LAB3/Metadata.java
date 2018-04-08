@@ -1,10 +1,6 @@
 package LAB3;
 
 import com.google.gson.annotations.SerializedName;
-import jdk.nashorn.internal.parser.JSONParser;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -173,23 +169,6 @@ class MetaFile implements Serializable
     public int getNumOfPages(){
         return pages.size();
     }
-
-
-
-
-
-    //TODO: return JsonArray
-    public JSONArray createJsonPages() throws Exception{
-        JSONArray listOfPages = new JSONArray();
-        JSONObject page = new JSONObject();
-          for(Page p : pages) {
-              //TODO
-              page.put("guid", p.guid);
-              page.put("length", p.length);
-              listOfPages.add(page);
-          }
-          return listOfPages;
-    }
 }
 
 /**
@@ -202,52 +181,13 @@ public class Metadata implements Serializable
      */
     @SerializedName("metafiles")
     List<MetaFile> metafiles;
-    //JsonObject toJsonObject;    // Create a Json Object that contains the file
-    //void readFromJsonObject(JsonObject m);  // Read from a Json Object that contains the files
-    //JsonArray array = Json.createArrayBuilder().build();
 
     /**
-     * Constructor
+     * default Constructor
      */
     public Metadata(){
         metafiles = new ArrayList<>();
     }
-
-    /**
-     * Constructor which parses the json
-     * @param object
-     */
-//    public Metadata(JSONObject object){
-//        JSONObject metadataObj = (JSONObject) object.get("metadata");
-//
-//    }
-
-//    public JSONObject createJson()throws Exception{
-//        JSONObject object = new JSONObject();
-//        //the entire metadata
-//        JSONObject metadata = new JSONObject();
-//        //array that contains all the metafiles
-//        JSONArray metafilesArray = new JSONArray();
-//        //array that contains all the pages of a metafile
-//        JSONArray pages;
-//        for(MetaFile file : metafiles){
-//            JSONObject metafile = new JSONObject();
-//            //declare the properties of the metafile
-//            metafile.put("name", file.getName());
-//            metafile.put("numberOfPages", file.getNumOfPages());
-//            metafile.put("length", file.getLength());
-//            //get the pages of the file
-//            pages = file.createJsonPages();
-//            //add the pages array to the metafile jsonobject
-//            metafile.put("pages", pages);
-//            //add the metafile to json array of files
-//            metafilesArray.add(metafile);
-//
-//        }
-//        metadata.put("file", metafilesArray);
-//        object.put("metadata", metadata);
-//        return object;
-//    }
 
     /**
      * adds a file to the metadata
@@ -265,7 +205,7 @@ public class Metadata implements Serializable
                 return f;
             }
         }
-        return null;//do exception
+        return null; //TODO: handle exception in dfs
     }
 
     /**
@@ -292,7 +232,7 @@ public class Metadata implements Serializable
                 return f.getPage(page);
             }
         }
-        return 0L; //TODO: handle this by throwing an exception
+        return 0L;
     }
 
     /**
@@ -315,7 +255,7 @@ public class Metadata implements Serializable
                   return f.getLastPage();
               }
           }
-          return 0L; //TODO: handle this by throwing an exception
+          return 0L;
       }
 
     /**
