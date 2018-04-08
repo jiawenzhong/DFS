@@ -1,6 +1,8 @@
 package LAB3;
 
 import java.io.*;
+import java.rmi.RemoteException;
+import java.rmi.ServerException;
 import java.util.Scanner;
 
 public class Client
@@ -65,7 +67,7 @@ public class Client
         System.out.println("tail (file name)");
         System.out.println("head (file name)");
         System.out.println("append (file name) (page)");
-        System.out.println("move (file name)");
+        System.out.println("move (file name) (new filename)");
 
 
         while(true) {
@@ -97,16 +99,26 @@ public class Client
                     client.dfs.delete(fileName);
                     break;
                 case "read":
-                    fileName = array[1];
-                    int pageNum = Integer.parseInt(array[2]);
-                    stream = client.dfs.read(fileName, pageNum);
-                    String file = "./"+ fileName + pageNum;
-                    client.readPageContents(file, stream);
+                    try {
+                        fileName = array[1];
+                        int pageNum = Integer.parseInt(array[2]);
+                        stream = client.dfs.read(fileName, pageNum);
+                        String file = "./" + fileName + pageNum;
+                        client.readPageContents(file, stream);
+                    } catch(ServerException e){
+                        System.out.println("File does not exists.");
+                    }
                     break;
                 case "tail":
                     fileName = array[1];
-                    stream = client.dfs.tail(fileName);
-                    client.readPageContents(fileName, stream);
+                    try {
+                        stream = client.dfs.tail(fileName);
+                        client.readPageContents(fileName, stream);
+                    } catch(ServerException e){
+                        System.out.println("File does not exists.");
+                    } catch (RemoteException e){
+                        System.out.println("File does not exists.");
+                    }
                     break;
                 case "head":
                     fileName = array[1];
@@ -123,6 +135,7 @@ public class Client
                     fileName = array[1];
                     String newName = array[2];
                     client.dfs.mv(fileName, newName);
+                    break;
                 default:
                     System.out.println("Command " + dfsCommand + " does not exist.");
                     break;
