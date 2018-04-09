@@ -12,15 +12,15 @@ public class FileStream extends InputStream implements Serializable {
       File file = new File(pathName);
       size = (int)file.length();
       byteBuffer = new byte[size];
-      
+
       FileInputStream fileInputStream = new FileInputStream(pathName);
       int i = 0;
       while (fileInputStream.available()> 0)
       {
 	byteBuffer[i++] = (byte)fileInputStream.read();
       }
-      fileInputStream.close();	
-      currentPosition = 0;	  
+      fileInputStream.close();
+      currentPosition = 0;
     }
 
     public Long getSize(){

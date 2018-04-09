@@ -171,8 +171,7 @@ public class DFS
     /**
      * Write the json object to the text file
      * @param json the json object in string form that convert from metadata
-     * @throws Exception TODO: catch it (try/catch)
-     * DONE ***
+     * @throws Exception
      */
     private void writeJsonToFile(String json) throws Exception{
         try (FileWriter file = new FileWriter("jsonfile.json")) {
@@ -187,7 +186,7 @@ public class DFS
      * Renames the file specified
      * @param oldName of the file
      * @param newName to be given to the file
-     * @throws Exception TODO: catch it (try/catch) check if file exists
+     * @throws Exception
      */
     public void mv(String oldName, String newName) throws Exception
     {
@@ -212,7 +211,7 @@ public class DFS
     /**
      * Returns all the files in the metadata
      * @return string of all the files
-     * @throws Exception TODO: catch it (try/catch) check if file exists
+     * @throws Exception
      */
     public String ls() throws Exception
     {
@@ -230,7 +229,7 @@ public class DFS
     /**
      * Create the file fileName by adding a new entry to the metadata
      * @param fileName of file to be crated
-     * @throws Exception TODO: catch it (try/catch) check if file exists
+     * @throws Exception
      */
     public void touch(String fileName) throws Exception
     {
@@ -244,8 +243,7 @@ public class DFS
      * TODO: test in client!
      * Remove all the pages in the entry fileName in the metadata, and then the entry
      * @param fileName to be delete
-     * @throws Exception TODO: catch it (try/catch) check if file exists
-     * DONE ***
+     * @throws Exception
      */
     public void delete(String fileName) throws Exception
     {
@@ -270,8 +268,7 @@ public class DFS
      * @param fileName of file to read from
      * @param pageNumber of page to read from
      * @return input stream representation of a page
-     * @throws Exception TODO: catch it (try/catch) check if file exists
-     * DONE ***
+     * @throws Exception
      */
     public InputStream read(String fileName, int pageNumber) throws Exception
     {
@@ -291,8 +288,7 @@ public class DFS
      * Return the last page of the fileName specified
      * @param fileName of file
      * @return input stream representation of a page
-     * @throws Exception TODO: catch it (try/catch) check if file exists
-     * DONEN ***
+     * @throws Exception
      */
     public InputStream tail(String fileName) throws Exception
     {
@@ -307,7 +303,7 @@ public class DFS
      * Returns the first page of the fileName
      * @param fileName of file
      * @return input stream representation of a page
-     * @throws Exception TODO: catch it (try/catch) check if file exists
+     * @throws Exception
      */
     public InputStream head(String fileName) throws Exception
     {
@@ -322,7 +318,7 @@ public class DFS
      * Append data to fileName TODO: create new page if needed
      * @param filename of file to append to
      * @param page that will be appended to fileName
-     * @throws Exception TODO: catch it (try/catch) check if file exists
+     * @throws Exception
      */
     public void append(String filename, String page) throws Exception {
         try {
