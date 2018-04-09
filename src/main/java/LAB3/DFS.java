@@ -6,6 +6,8 @@ import com.google.gson.stream.JsonReader;
 import java.io.*;
 import java.nio.file.*;
 import java.math.BigInteger;
+import java.rmi.RemoteException;
+import java.rmi.ServerException;
 import java.security.*;
 // import a json package
 
@@ -99,6 +101,7 @@ public class DFS
      * read metadata
      * @return metadata to be read
      * @throws Exception TODO: catch it (try/catch) check if file exists
+     * DONE ***
      */
     public Metadata readMetaData() throws Exception
     {
@@ -107,45 +110,76 @@ public class DFS
         long guid = md5("Metadata.json");
         LAB3.ChordMessageInterface peer = chord.locateSuccessor(guid);
 
-
-        InputStream metadataraw = peer.get(guid);//catch exception, check if file exists (if not create it)
-        JsonReader jsonReader = new JsonReader(new InputStreamReader(metadataraw));
-        metadata = gson.fromJson(jsonReader, Metadata.class);
+        try {
+            InputStream metadataraw = peer.get(guid);//catch exception, check if file exists (if not create it)
+            JsonReader jsonReader = new JsonReader(new InputStreamReader(metadataraw));
+            metadata = gson.fromJson(jsonReader, Metadata.class);
             //System.out.println("JSON READ: " + jsonReader.toString());//for debugging
             //TODO: create it if it doesn't exist (in the catch)
             //System.out.println("File was not found when attempting to read, so it has been created.");
             //writeMetaData(metadata);
+        } catch (RemoteException e){
+            System.out.println("File does not exists.");
+            System.out.println("Initializing metatdata.");
+            createMetaData();
+        }
 
         return metadata;
+    }
+
+    /**
+     * create/initialize the metadata when there are no files exists
+     * @throws Exception
+     */
+    public void createMetaData() throws Exception {
+        Metadata metadata = new Metadata();
+//        metadata.addFile("testFile", 0L);
+//        metadata.addFile("testFile2", 0L);
+//
+//        metadata.addPageToFile("testFile", 20L, 1L);
+//        metadata.addPageToFile("testFile", 15L, 2L);
+//        metadata.addPageToFile("testFile2", 10L, 3L);
+//        metadata.addPageToFile("testFile2", 25L, 4L);
+//        metadata.addPageToFile("testFile2", 25L, 4L);
+
+        writeMetaData(metadata);
     }
 
     /**
      * Write the metadata
      * @param metadata to be written and saved
      * @throws Exception TODO: catch it (try/catch)
+     * DONE ***
      */
     public void writeMetaData(Metadata metadata) throws Exception
     {
         Gson gson = new Gson();
-        long guid = md5("Metadata.json");
-        LAB3.ChordMessageInterface peer = chord.locateSuccessor(guid);
-        String jsonString = gson.toJson(metadata);
+        try {
+            long guid = md5("Metadata.json");
+            LAB3.ChordMessageInterface peer = chord.locateSuccessor(guid);
+            String jsonString = gson.toJson(metadata);
 
-        writeJsonToFile(jsonString);
-        FileStream fileStream = new FileStream("jsonfile.json");
-        //System.out.println("JSON WRITE: " + jsonString);//for debugging
-        peer.put(guid, fileStream);
+            writeJsonToFile(jsonString);
+            FileStream fileStream = new FileStream("jsonfile.json");
+            //System.out.println("JSON WRITE: " + jsonString);//for debugging
+            peer.put(guid, fileStream);
+        }catch (RemoteException e){
+            System.out.println("File does not exists.");
+        }
     }
 
     /**
      * Write the json object to the text file
      * @param json the json object in string form that convert from metadata
      * @throws Exception TODO: catch it (try/catch)
+     * DONE ***
      */
     private void writeJsonToFile(String json) throws Exception{
         try (FileWriter file = new FileWriter("jsonfile.json")) {
             file.write(json);
             System.out.println("Successfully Copied JSON Object to File...");
+        }catch (RemoteException e){
+            System.out.println("File does not exists.");
         }
     }
 
@@ -183,8 +217,12 @@ public class DFS
     public String ls() throws Exception
     {
         String listOfFiles = "";
-        Metadata metadata = readMetaData();
-        listOfFiles = metadata.getListOfNames();
+        try {
+            Metadata metadata = readMetaData();
+            listOfFiles = metadata.getListOfNames();
+        } catch (FileNotFoundException e){
+            System.out.println("File does not exists.");
+        }
 
         return listOfFiles;
     }
@@ -207,17 +245,24 @@ public class DFS
      * Remove all the pages in the entry fileName in the metadata, and then the entry
      * @param fileName to be delete
      * @throws Exception TODO: catch it (try/catch) check if file exists
+     * DONE ***
      */
     public void delete(String fileName) throws Exception
     {
         Metadata m = readMetaData();
-        MetaFile file = m.getFileByName(fileName);
-        for(Page p : file.getListOfPages()){
-            LAB3.ChordMessageInterface peer = chord.locateSuccessor(p.getGuid());
-            peer.delete(p.getGuid());
+        try {
+            MetaFile file = m.getFileByName(fileName);
+            for (Page p : file.getListOfPages()) {
+                LAB3.ChordMessageInterface peer = chord.locateSuccessor(p.getGuid());
+                peer.delete(p.getGuid());
+            }
+            m.metafiles.remove(file);
+            writeMetaData(m);
+        } catch (RemoteException e){
+            System.out.println("File does not exists.");
+        } catch (NullPointerException a){
+            System.out.println("File does not exists.");
         }
-        m.metafiles.remove(file);
-        writeMetaData(m);
     }
 
     /**
@@ -226,16 +271,20 @@ public class DFS
      * @param pageNumber of page to read from
      * @return input stream representation of a page
      * @throws Exception TODO: catch it (try/catch) check if file exists
+     * DONE ***
      */
     public InputStream read(String fileName, int pageNumber) throws Exception
     {
         // TODO: read pageNumber from fileName
         // Does this mean read from the page specified?
-        Metadata metadata = readMetaData();
-        Long page = metadata.getPage(fileName, pageNumber);
-        LAB3.ChordMessageInterface peer = chord.locateSuccessor(page);
-        return peer.get(page);
+        Metadata metadata;
+        Long page = null;
+        LAB3.ChordMessageInterface peer = null;
+        metadata = readMetaData();
+        page = metadata.getPage(fileName, pageNumber);
+        peer = chord.locateSuccessor(page);
 
+        return peer.get(page);
     }
 
     /**
@@ -243,13 +292,14 @@ public class DFS
      * @param fileName of file
      * @return input stream representation of a page
      * @throws Exception TODO: catch it (try/catch) check if file exists
+     * DONEN ***
      */
     public InputStream tail(String fileName) throws Exception
     {
+
         Metadata m = readMetaData();
         Long tail = m.getTail(fileName);
         LAB3.ChordMessageInterface peer = chord.locateSuccessor(tail);
-
         return peer.get(tail);
     }
 
@@ -274,18 +324,20 @@ public class DFS
      * @param page that will be appended to fileName
      * @throws Exception TODO: catch it (try/catch) check if file exists
      */
-    public void append(String filename, String page) throws Exception
-    {
-        Metadata m = readMetaData();
-        Long guid = md5(page);
-        FileStream data = new FileStream(page);
+    public void append(String filename, String page) throws Exception {
+        try {
+            Metadata m = readMetaData();
+            Long guid = md5(page);
+            FileStream data = new FileStream(page);
 
-        m.addPageToFile(filename, data.getSize(), guid);
-        // Let guid be the last page in json_testing.Metadata.filename
-        LAB3.ChordMessageInterface peer = chord.locateSuccessor(guid);
-        peer.put(guid, data);
-        writeMetaData(m);
-
+            m.addPageToFile(filename, data.getSize(), guid);
+            // Let guid be the last page in json_testing.Metadata.filename
+            LAB3.ChordMessageInterface peer = chord.locateSuccessor(guid);
+            peer.put(guid, data);
+            writeMetaData(m);
+        }catch (FileNotFoundException e){
+            System.out.println("File not found.");
+        }
     }
 
 }
