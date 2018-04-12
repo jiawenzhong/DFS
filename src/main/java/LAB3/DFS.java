@@ -100,8 +100,7 @@ public class DFS
     /**
      * read metadata
      * @return metadata to be read
-     * @throws Exception TODO: catch it (try/catch) check if file exists
-     * DONE ***
+     * @throws Exception
      */
     public Metadata readMetaData() throws Exception
     {

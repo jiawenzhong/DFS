@@ -28,7 +28,7 @@ public class Client
                     new BufferedReader(fileReader);
 
             while((contents = bufferedReader.readLine()) != null) {
-                System.out.println("Page: "+ contents);
+                System.out.println(contents);
             }
         }
         catch (IOException e) {
