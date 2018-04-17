@@ -335,4 +335,23 @@ public class DFS
         }
     }
 
+    public void runMapReduce(MetaFile metafile) throws RemoteException {
+        Context context= new Context();
+        // TODO: do we need a mapreduce class?
+//        mapreduce = new MapReduceInterface();
+//        // map Phases
+        for( Page page : metafile.getListOfPages()) {
+            context.add(page);
+            // TODO: what is peer? use this in here to get the peer?
+            LAB3.ChordMessageInterface peer = chord.locateSuccessor(page.getGuid());
+            // TODO: let peer be the process responsible for storing page
+            // TODO: peer doesn't have mapContext, Context object does
+            // peer.mapContext(page, mapreduce, context);
+        }
+//        wait until context.hasCompleted() = true
+//        // reduce phase
+//        reduceContext(guid, mapreduce, context);
+//        wait until context.hasCompleted() = true;
+    }
+
 }
