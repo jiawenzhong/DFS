@@ -2,16 +2,31 @@ package LAB3;
 
 import java.io.IOException;
 
-public class Mapper {
+public class Mapper implements MapReduceInterface {
 
-    public void map(Long key, String value) throws IOException
+    /**
+     * sort the keys
+     * @param key
+     * @param value
+     * @param context
+     * @throws IOException
+     */
+    public void map(Long key, String value, ChordMessageInterface context) throws IOException
     {
-//        For each word in value
-//        emit(md5(word), word +":"+1);
+//        for(String word : value.split(":"))
+        context.emitMap(key, value);
     }
-    public void reduce(Long key, String values[]) throws IOException
+
+    /**
+     * counts the # of time the key appears
+     * @param key
+     * @param values
+     * @param context
+     * @throws IOException
+     */
+    public void reduce(Long key, String values[], ChordMessageInterface context) throws IOException
     {
-//        word = values[0].split(":")[0]
-//        emit(key, word +":"+ len(values));
+        String word = values[0].split(":")[0];
+        context.emitMap(key, word +":"+ values.length);
     }
 }

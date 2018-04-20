@@ -49,8 +49,9 @@ public class DFS
 {
     int port;
     Chord  chord;
+    Long guid;
 
-    private long md5(String objectName)
+    public long md5(String objectName)
     {
         try
         {
@@ -73,7 +74,7 @@ public class DFS
     public DFS(int port) throws Exception
     {
         this.port = port;
-        long guid = md5("" + port);
+        guid = md5("" + port);
         chord = new Chord(port, guid);
         Files.createDirectories(Paths.get(guid+"/repository"));
     }
@@ -336,21 +337,22 @@ public class DFS
     }
 
     public void runMapReduce(MetaFile metafile) throws RemoteException {
-        Context context= new Context();
         // TODO: do we need a mapreduce class?
-//        mapreduce = new MapReduceInterface();
+       MapReduceInterface mapreduce = new Mapper();
 //        // map Phases
+        LAB3.ChordMessageInterface peer = null;
         for( Page page : metafile.getListOfPages()) {
-            context.add(page);
+            chord.setWorkingPeer(page.getGuid());
             // TODO: what is peer? use this in here to get the peer?
-            LAB3.ChordMessageInterface peer = chord.locateSuccessor(page.getGuid());
+            peer = chord.locateSuccessor(page.getGuid());
             // TODO: let peer be the process responsible for storing page
             // TODO: peer doesn't have mapContext, Context object does
-            // peer.mapContext(page, mapreduce, context);
+             peer.mapContext(page.getGuid(), mapreduce, chord);
         }
-//        wait until context.hasCompleted() = true
-//        // reduce phase
-//        reduceContext(guid, mapreduce, context);
+        while(!chord.isPhaseCompleted());
+//        wait until c.hasCompleted() = true
+        // reduce phase
+        chord.successor.reduceContext(guid, mapreduce, chord);
 //        wait until context.hasCompleted() = true;
     }
 

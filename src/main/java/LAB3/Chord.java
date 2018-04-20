@@ -17,6 +17,8 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface
     ChordMessageInterface[] finger;
     int nextFinger;
     long guid;   		// GUID (i)
+    TreeMap BMap = new TreeMap<Long, List<String>>();
+    TreeMap BReduce = new TreeMap<Long, String>();
     
     
     public Boolean isKeyInSemiCloseInterval(long key, long key1, long key2)
@@ -65,7 +67,7 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface
         File file = new File("./"+guid+"/repository/" + guidObject);
         file.delete();
     }
-    
+
     public long getId() throws RemoteException {
         return guid;
     }
@@ -276,5 +278,80 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface
         catch(RemoteException e){
 	       System.out.println("Cannot retrive id");
         }
+    }
+
+    public void emitReduce(Long key, String value) throws RemoteException
+    {
+        if (isKeyInOpenInterval(key, predecessor.getId(), successor.getId()))
+        {
+        // insert in the BReduce
+            BReduce.put(key, value);
+        }
+        else
+        {
+            ChordMessageInterface peer = this.locateSuccessor(key);
+            peer.emitReduce(key, value);
+        }
+
+    }
+
+    public void emitMap(Long key, String value) throws RemoteException
+    {
+        if (isKeyInOpenInterval(key, predecessor.getId(), successor.getId()))
+        {
+            // insert in the BMap. Allows repetition
+            if (BMap.containsKey(key))
+            {
+                List< String > list = new ArrayList<String>();
+                BMap.put(key,list);
+            }
+            BMap.put(key, value);
+
+        }
+        else
+        {
+            ChordMessageInterface peer = this.locateSuccessor(key);
+            peer.emitMap(key, value);
+        }
+    }
+
+
+    @Override
+    public void setWorkingPeer(Long page) {
+
+    }
+
+    @Override
+    public void completePeer(Long page, Long n) throws RemoteException {
+
+    }
+
+    @Override
+    public Boolean isPhaseCompleted() {
+        return null;
+    }
+
+    @Override
+    public void reduceContext(Long source, MapReduceInterface reducer, ChordMessageInterface context) throws RemoteException {
+        // TODO: create a thread run and then return immediately
+//        reduceContext(Long source, ReduceInterface reducer, Context context):
+//        If source 6= guid, call context:add(guid) and then call
+//        successor:reduceContext(source; reducer; context). Then create a new
+//                thread to avoid blocking in which you have to read in order BReduce,
+//        and execute reducer:reduce(key; value[]; context). Make sure that the
+//        tree is stored in persistent memory. When it completes reading BReduce,
+//                it calls context:complete(guid; n) where n is the number or rows and
+//        guid is the guid of the peer.
+    }
+
+    @Override
+    public void mapContext(Long page, MapReduceInterface mapper, ChordMessageInterface context) throws RemoteException {
+        // TODO: create a thread run and then return immediately
+//        mapContext(Long page, MapReduceInterface mapper, Context context):
+//              Opens the page (page), read line-by-line and execute
+//              mapper:map(key; value; context). When it has read the complete file,
+//                it calls context:completeP eer(page; n) where n is the number of rows.
+//                You have to create a new thread to avoid blocking. Observe that con-
+//                text is the instance of the coordinator or initiator.
     }
 }
