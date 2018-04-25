@@ -337,23 +337,24 @@ public class DFS
     }
 
     public void runMapReduce(MetaFile metafile) throws RemoteException {
-        // TODO: do we need a mapreduce class?
-       MapReduceInterface mapreduce = new Mapper();
+//        // TODO: do we need a mapreduce class?
+//       MapReduceInterface mapreduce = new Mapper();
 //        // map Phases
-        LAB3.ChordMessageInterface peer = null;
-        for( Page page : metafile.getListOfPages()) {
-            chord.setWorkingPeer(page.getGuid());
-            // TODO: what is peer? use this in here to get the peer?
-            peer = chord.locateSuccessor(page.getGuid());
-            // TODO: let peer be the process responsible for storing page
-            // TODO: peer doesn't have mapContext, Context object does
-             peer.mapContext(page.getGuid(), mapreduce, chord);
-        }
-        while(!chord.isPhaseCompleted());
-//        wait until c.hasCompleted() = true
-        // reduce phase
-        chord.successor.reduceContext(guid, mapreduce, chord);
-//        wait until context.hasCompleted() = true;
+//        LAB3.ChordMessageInterface peer = null;
+//        for( Page page : metafile.getListOfPages()) {
+//            chord.setWorkingPeer(page.getGuid());
+//            // TODO: what is peer? use this in here to get the peer?
+//            peer = chord.locateSuccessor(page.getGuid());
+//            // TODO: let peer be the process responsible for storing page
+//            // TODO: peer doesn't have mapContext, Context object does
+//             peer.mapContext(page.getGuid(), mapreduce, chord);
+//        }
+//        while(!chord.isPhaseCompleted());
+//        // reduce phase
+//        chord.successor.reduceContext(guid, mapreduce, chord);
     }
+
+    //TODO: function to create a page for every peer's tree, similar to reduceContext()
+    //create the page, call the successor
 
 }

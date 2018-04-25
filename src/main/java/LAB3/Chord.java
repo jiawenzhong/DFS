@@ -10,6 +10,8 @@ import java.io.*;
 public class Chord extends UnicastRemoteObject implements ChordMessageInterface
 {
     public static final int M = 2;
+    Long n = 0L;
+    Set<Long> set;
     
     Registry registry;    // rmi registry for lookup the remote objects.
     ChordMessageInterface successor;
@@ -19,8 +21,8 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface
     long guid;   		// GUID (i)
     TreeMap BMap = new TreeMap<Long, List<String>>();
     TreeMap BReduce = new TreeMap<Long, String>();
-    
-    
+
+
     public Boolean isKeyInSemiCloseInterval(long key, long key1, long key2)
     {
        if (key1 < key2)
@@ -282,71 +284,98 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface
 
     public void emitReduce(Long key, String value) throws RemoteException
     {
-        if (isKeyInOpenInterval(key, predecessor.getId(), successor.getId()))
-        {
-        // insert in the BReduce
-            BReduce.put(key, value);
-        }
-        else
-        {
-            ChordMessageInterface peer = this.locateSuccessor(key);
-            peer.emitReduce(key, value);
-        }
+//        if (isKeyInOpenInterval(key, predecessor.getId(), successor.getId()))
+//        {
+//        // insert in the BReduce
+//            BReduce.put(key, value);
+//        }
+//        else
+//        {
+//            ChordMessageInterface peer = this.locateSuccessor(key);
+//            peer.emitReduce(key, value);
+//        }
 
     }
 
     public void emitMap(Long key, String value) throws RemoteException
     {
-        if (isKeyInOpenInterval(key, predecessor.getId(), successor.getId()))
-        {
-            // insert in the BMap. Allows repetition
-            if (BMap.containsKey(key))
-            {
-                List< String > list = new ArrayList<String>();
-                BMap.put(key,list);
-            }
-            BMap.put(key, value);
-
-        }
-        else
-        {
-            ChordMessageInterface peer = this.locateSuccessor(key);
-            peer.emitMap(key, value);
-        }
+//        if (isKeyInOpenInterval(key, predecessor.getId(), successor.getId()))
+//        {
+//            // insert in the BMap. Allows repetition
+//            if (BMap.containsKey(key))
+//            {
+//                List< String > list = new ArrayList<String>();
+//                BMap.put(key,list);
+//            }
+//            BMap.put(key, value);
+//
+//        }
+//        else
+//        {
+//            ChordMessageInterface peer = this.locateSuccessor(key);
+//            peer.emitMap(key, value);
+//        }
     }
 
 
-    @Override
     public void setWorkingPeer(Long page) {
-
+//        set.add(page);
     }
 
-    @Override
     public void completePeer(Long page, Long n) throws RemoteException {
-
+//        this.n += n;
+//        set.remove(page);
     }
 
-    @Override
     public Boolean isPhaseCompleted() {
-        return null;
+//        if(set.isEmpty())
+//            return true;
+        return false;
     }
 
-    @Override
     public void reduceContext(Long source, MapReduceInterface reducer, ChordMessageInterface context) throws RemoteException {
-        // TODO: create a thread run and then return immediately
-//        reduceContext(Long source, ReduceInterface reducer, Context context):
-//        If source 6= guid, call context:add(guid) and then call
-//        successor:reduceContext(source; reducer; context). Then create a new
-//                thread to avoid blocking in which you have to read in order BReduce,
-//        and execute reducer:reduce(key; value[]; context). Make sure that the
-//        tree is stored in persistent memory. When it completes reading BReduce,
-//                it calls context:complete(guid; n) where n is the number or rows and
-//        guid is the guid of the peer.
+//        // TODO: create a thread run and then return immediately
+//        if(source != guid){
+//            successor.reduceContext(source, reducer, context);
+//            Thread thread = new Thread(new Runnable() {
+//                @Override
+//                public void run() {
+//                    List<String> values = new ArrayList<String>();
+//                    for (String s : values){
+//                        values.add(s);
+//                    }
+//                    try {
+//                        reducer.reduce(source, values, context);
+//
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//            });
+//            thread.start();
+//        }
+////        Note: It must exist a metafile called "fileName reduce" where fileName
+////        is the original logical file that you are sorting with n pages. Each
+////        peer creates a page (guid) with the data in BReduce and insert into
+////        "fileName reduce".
     }
 
-    @Override
+    public void saveReduceFile(Long source) throws IOException {
+////        store Breduce in file
+//        FileWriter file = new FileWriter("fileName.reduce");
+//        Collection entreSet = BReduce.entrySet();
+//        Iterator it = entreSet.iterator();
+//        //put everything in BReduce in one Page
+//        while(it.hasNext()){
+//            file.append(it.next().toString());
+//        }
+//        if(source != guid){
+//            successor.saveReduceFile(source);
+//        }
+    }
+
     public void mapContext(Long page, MapReduceInterface mapper, ChordMessageInterface context) throws RemoteException {
-        // TODO: create a thread run and then return immediately
+//        // TODO: create a thread run and then return immediately
 //        mapContext(Long page, MapReduceInterface mapper, Context context):
 //              Opens the page (page), read line-by-line and execute
 //              mapper:map(key; value; context). When it has read the complete file,
@@ -354,4 +383,5 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface
 //                You have to create a new thread to avoid blocking. Observe that con-
 //                text is the instance of the coordinator or initiator.
     }
+
 }
