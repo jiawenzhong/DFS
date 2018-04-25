@@ -18,15 +18,15 @@ public interface ChordMessageInterface extends Remote
     InputStream get(long guidObject) throws IOException, RemoteException;
     void delete(long guidObject) throws IOException, RemoteException;
 
-//    void setWorkingPeer(Long page);
-//    void completePeer(Long page, Long n) throws RemoteException;
-//    Boolean isPhaseCompleted();
-//    void reduceContext(Long source, MapReduceInterface reducer, ChordMessageInterface context) throws RemoteException;
-//    void mapContext(Long page, MapReduceInterface mapper, ChordMessageInterface context) throws RemoteException;
-//
-//    void emitMap(Long key, String value) throws RemoteException;
-//    void emitReduce(Long page, String value) throws RemoteException;
-//
-//    void saveReduceFile(Long source) throws IOException;
+    void setWorkingPeer(Long page);
+    void completePeer(Long page, Long n) throws RemoteException;
+    Boolean isPhaseCompleted();
+    void reduceContext(Long source, MapReduceInterface reducer, ChordMessageInterface context) throws RemoteException;
+    void mapContext(Long page, MapReduceInterface mapper, ChordMessageInterface context) throws RemoteException;
+
+    void emitMap(Long key, String value) throws RemoteException;
+    void emitReduce(Long page, String value) throws RemoteException;
+
+    void saveReduceFile(Long source) throws IOException;
 }
 

@@ -284,94 +284,94 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface
 
     public void emitReduce(Long key, String value) throws RemoteException
     {
-//        if (isKeyInOpenInterval(key, predecessor.getId(), successor.getId()))
-//        {
-//        // insert in the BReduce
-//            BReduce.put(key, value);
-//        }
-//        else
-//        {
-//            ChordMessageInterface peer = this.locateSuccessor(key);
-//            peer.emitReduce(key, value);
-//        }
+        if (isKeyInOpenInterval(key, predecessor.getId(), successor.getId()))
+        {
+        // insert in the BReduce
+            BReduce.put(key, value);
+        }
+        else
+        {
+            ChordMessageInterface peer = this.locateSuccessor(key);
+            peer.emitReduce(key, value);
+        }
 
     }
 
     public void emitMap(Long key, String value) throws RemoteException
     {
-//        if (isKeyInOpenInterval(key, predecessor.getId(), successor.getId()))
-//        {
-//            // insert in the BMap. Allows repetition
-//            if (BMap.containsKey(key))
-//            {
-//                List< String > list = new ArrayList<String>();
-//                BMap.put(key,list);
-//            }
-//            BMap.put(key, value);
-//
-//        }
-//        else
-//        {
-//            ChordMessageInterface peer = this.locateSuccessor(key);
-//            peer.emitMap(key, value);
-//        }
+        if (isKeyInOpenInterval(key, predecessor.getId(), successor.getId()))
+        {
+            // insert in the BMap. Allows repetition
+            if (BMap.containsKey(key))
+            {
+                List< String > list = new ArrayList<String>();
+                BMap.put(key,list);
+            }
+            BMap.put(key, value);
+
+        }
+        else
+        {
+            ChordMessageInterface peer = this.locateSuccessor(key);
+            peer.emitMap(key, value);
+        }
     }
 
 
     public void setWorkingPeer(Long page) {
-//        set.add(page);
+        set.add(page);
     }
 
     public void completePeer(Long page, Long n) throws RemoteException {
-//        this.n += n;
-//        set.remove(page);
+        this.n += n;
+        set.remove(page);
     }
 
     public Boolean isPhaseCompleted() {
-//        if(set.isEmpty())
-//            return true;
+        if(set.isEmpty())
+            return true;
         return false;
     }
 
     public void reduceContext(Long source, MapReduceInterface reducer, ChordMessageInterface context) throws RemoteException {
-//        // TODO: create a thread run and then return immediately
-//        if(source != guid){
-//            successor.reduceContext(source, reducer, context);
-//            Thread thread = new Thread(new Runnable() {
-//                @Override
-//                public void run() {
-//                    List<String> values = new ArrayList<String>();
-//                    for (String s : values){
-//                        values.add(s);
-//                    }
-//                    try {
-//                        reducer.reduce(source, values, context);
-//
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//            });
-//            thread.start();
-//        }
-////        Note: It must exist a metafile called "fileName reduce" where fileName
-////        is the original logical file that you are sorting with n pages. Each
-////        peer creates a page (guid) with the data in BReduce and insert into
-////        "fileName reduce".
+        // TODO: create a thread run and then return immediately
+        if(source != guid){
+            successor.reduceContext(source, reducer, context);
+            Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    List<String> values = new ArrayList<String>();
+                    for (String s : values){
+                        values.add(s);
+                    }
+                    try {
+                        reducer.reduce(source, values, context);
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+            thread.start();
+        }
+//        Note: It must exist a metafile called "fileName reduce" where fileName
+//        is the original logical file that you are sorting with n pages. Each
+//        peer creates a page (guid) with the data in BReduce and insert into
+//        "fileName reduce".
     }
 
     public void saveReduceFile(Long source) throws IOException {
-////        store Breduce in file
-//        FileWriter file = new FileWriter("fileName.reduce");
-//        Collection entreSet = BReduce.entrySet();
-//        Iterator it = entreSet.iterator();
-//        //put everything in BReduce in one Page
-//        while(it.hasNext()){
-//            file.append(it.next().toString());
-//        }
-//        if(source != guid){
-//            successor.saveReduceFile(source);
-//        }
+//        store Breduce in file
+        FileWriter file = new FileWriter("fileName.reduce");
+        Collection entreSet = BReduce.entrySet();
+        Iterator it = entreSet.iterator();
+        //put everything in BReduce in one Page
+        while(it.hasNext()){
+            file.append(it.next().toString());
+        }
+        if(source != guid){
+            successor.saveReduceFile(source);
+        }
     }
 
     public void mapContext(Long page, MapReduceInterface mapper, ChordMessageInterface context) throws RemoteException {
