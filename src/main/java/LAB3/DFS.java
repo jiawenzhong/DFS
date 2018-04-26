@@ -344,7 +344,7 @@ public class DFS
             context.add(page);
             // TODO: what is peer? use this in here to get the peer?
             LAB3.ChordMessageInterface peer = chord.locateSuccessor(page.getGuid());
-            // TODO: let peer be the process responsible for storing page
+            //git  TODO: let peer be the process responsible for storing page
             // TODO: peer doesn't have mapContext, Context object does
             // peer.mapContext(page, mapreduce, context);
         }
