@@ -346,13 +346,10 @@ public class DFS
         for( Page page : metafile.getListOfPages()) {
             chord.setWorkingPeer(page.getGuid());
             // TODO: what is peer? use this in here to get the peer?
-<<<<<<< HEAD
-            LAB3.ChordMessageInterface peer = chord.locateSuccessor(page.getGuid());
+            //gitLAB3.ChordMessageInterface peer = chord.locateSuccessor(page.getGuid());
             //git  TODO: let peer be the process responsible for storing page
-=======
             peer = chord.locateSuccessor(page.getGuid());
             // TODO: let peer be the process responsible for storing page
->>>>>>> 671cb4a9e26507daab5afe68e06cdbd5d68a660c
             // TODO: peer doesn't have mapContext, Context object does
              peer.mapContext(page.getGuid(), mapreduce, chord);
         }
