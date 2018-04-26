@@ -42,6 +42,15 @@ public class Client
         if (args.length < 1 ) {
             throw new IllegalArgumentException("Parameter: <port>");
         }
+
+        //TODO: call runMapReduce:
+        // based on original file, create one that is sorted, touch, create new file, insert pages,
+        // insert 1 page for every peer (peer ID): have all the file in order
+        // output: every peer has a local tree, contains data in order
+        // create a file thats in the order of the peers
+        // the page of a peer contains the contents of the tree
+        // put the pages in the files in order based on the peer ID
+
 //        TODO: this used to create the file the first time around
 //        Metadata metadata = new Metadata();
 //        metadata.addFile("testFile", 0L);

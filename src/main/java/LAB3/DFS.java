@@ -49,8 +49,9 @@ public class DFS
 {
     int port;
     Chord  chord;
+    Long guid;
 
-    private long md5(String objectName)
+    public long md5(String objectName)
     {
         try
         {
@@ -73,7 +74,7 @@ public class DFS
     public DFS(int port) throws Exception
     {
         this.port = port;
-        long guid = md5("" + port);
+        guid = md5("" + port);
         chord = new Chord(port, guid);
         Files.createDirectories(Paths.get(guid+"/repository"));
     }
@@ -335,23 +336,32 @@ public class DFS
         }
     }
 
-    public void runMapReduce(MetaFile metafile) throws RemoteException {
-        Context context= new Context();
-        // TODO: do we need a mapreduce class?
-//        mapreduce = new MapReduceInterface();
-//        // map Phases
+    public void runMapReduce(String filename) throws Exception {
+//        // TODO: do we need a mapreduce class?
+        Metadata m = readMetaData();
+        MapReduceInterface mapreduce = new Mapper();
+        // map Phases
+        MetaFile metafile = m.getFileByName(filename);
+        LAB3.ChordMessageInterface peer = null;
         for( Page page : metafile.getListOfPages()) {
-            context.add(page);
+            chord.setWorkingPeer(page.getGuid());
             // TODO: what is peer? use this in here to get the peer?
+<<<<<<< HEAD
             LAB3.ChordMessageInterface peer = chord.locateSuccessor(page.getGuid());
             //git  TODO: let peer be the process responsible for storing page
+=======
+            peer = chord.locateSuccessor(page.getGuid());
+            // TODO: let peer be the process responsible for storing page
+>>>>>>> 671cb4a9e26507daab5afe68e06cdbd5d68a660c
             // TODO: peer doesn't have mapContext, Context object does
-            // peer.mapContext(page, mapreduce, context);
+             peer.mapContext(page.getGuid(), mapreduce, chord);
         }
-//        wait until context.hasCompleted() = true
-//        // reduce phase
-//        reduceContext(guid, mapreduce, context);
-//        wait until context.hasCompleted() = true;
+        while(!chord.isPhaseCompleted());
+        // reduce phase
+        chord.successor.reduceContext(guid, mapreduce, chord);
     }
+
+    //TODO: function to create a page for every peer's tree, similar to reduceContext()
+    //create the page, call the successor
 
 }
