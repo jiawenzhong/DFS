@@ -63,7 +63,6 @@ public class Client
 //        metadata.addPageToFile("testFile2", 25L, 4L);
 
         Client client = new Client( Integer.parseInt(args[0]));
-//        client.dfs.writeMetaData(metadata);
 
         Scanner in = new Scanner(System.in);
 

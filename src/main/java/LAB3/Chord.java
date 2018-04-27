@@ -318,7 +318,7 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface
     }
 
 
-    public void setWorkingPeer(Long page) {
+    public void setWorkingPeer(Long page) throws IOException {
         set.add(page);
     }
 
@@ -327,7 +327,7 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface
         set.remove(page);
     }
 
-    public Boolean isPhaseCompleted() {
+    public Boolean isPhaseCompleted() throws IOException {
         if(set.isEmpty())
             return true;
         return false;
@@ -335,25 +335,25 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface
 
     public void reduceContext(Long source, MapReduceInterface reducer, ChordMessageInterface context) throws RemoteException {
         // TODO: create a thread run and then return immediately
-        if(source != guid){
-            successor.reduceContext(source, reducer, context);
-            Thread thread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    List<String> values = new ArrayList<String>();
-                    for (String s : values){
-                        values.add(s);
-                    }
-                    try {
-                        reducer.reduce(source, values, context);
-
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-            thread.start();
-        }
+//        if(source != guid){
+//            successor.reduceContext(source, reducer, context);
+//            Thread thread = new Thread(new Runnable() {
+//                @Override
+//                public void run() {
+//                    List<String> values = new ArrayList<String>();
+//                    for (String s : values){
+//                        values.add(s);
+//                    }
+//                    try {
+//                        reducer.reduce(source, values, context);
+//
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//            });
+//            thread.start();
+//        }
 //        Note: It must exist a metafile called "fileName reduce" where fileName
 //        is the original logical file that you are sorting with n pages. Each
 //        peer creates a page (guid) with the data in BReduce and insert into
@@ -361,22 +361,23 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface
     }
 
     public void saveReduceFile(Long source) throws IOException {
-//        store Breduce in file
-        FileWriter file = new FileWriter("fileName.reduce");
-        Collection entreSet = BReduce.entrySet();
-        Iterator it = entreSet.iterator();
-        //put everything in BReduce in one Page
-        while(it.hasNext()){
-            file.append(it.next().toString());
-        }
-        if(source != guid){
-            successor.saveReduceFile(source);
-        }
+////        store Breduce in file
+//        FileWriter file = new FileWriter("fileName.reduce");
+//        Collection entreSet = BReduce.entrySet();
+//        Iterator it = entreSet.iterator();
+//        //put everything in BReduce in one Page
+//        while(it.hasNext()){
+//            file.append(it.next().toString());
+//        }
+//        if(source != guid){
+//            successor.saveReduceFile(source);
+//        }
     }
 
     public void mapContext(Long page, MapReduceInterface mapper, ChordMessageInterface context) throws RemoteException {
 //        // TODO: create a thread run and then return immediately
 //        mapContext(Long page, MapReduceInterface mapper, Context context):
+
 //              Opens the page (page), read line-by-line and execute
 //              mapper:map(key; value; context). When it has read the complete file,
 //                it calls context:completeP eer(page; n) where n is the number of rows.

@@ -18,9 +18,9 @@ public interface ChordMessageInterface extends Remote
     InputStream get(long guidObject) throws IOException, RemoteException;
     void delete(long guidObject) throws IOException, RemoteException;
 
-    void setWorkingPeer(Long page);
+    void setWorkingPeer(Long page) throws IOException;
     void completePeer(Long page, Long n) throws RemoteException;
-    Boolean isPhaseCompleted();
+    Boolean isPhaseCompleted() throws IOException;
     void reduceContext(Long source, MapReduceInterface reducer, ChordMessageInterface context) throws RemoteException;
     void mapContext(Long page, MapReduceInterface mapper, ChordMessageInterface context) throws RemoteException;
 
