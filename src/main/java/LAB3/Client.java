@@ -144,6 +144,9 @@ public class Client
                     String newName = array[2];
                     client.dfs.mv(fileName, newName);
                     break;
+                case "MapReduce":
+                    fileName = array[1];
+                    client.dfs.runMapReduce(fileName);
                 default:
                     System.out.println("Command " + dfsCommand + " does not exist.");
                     break;
