@@ -337,7 +337,7 @@ public class DFS
     }
 
     public void runMapReduce(String filename) throws Exception {
-//        // TODO: do we need a mapreduce class?
+        // TODO: do we need a mapreduce class?
         Metadata m = readMetaData();
         MapReduceInterface mapreduce = new Mapper();
         // map Phases

@@ -63,7 +63,6 @@ public class Client
 //        metadata.addPageToFile("testFile2", 25L, 4L);
 
         Client client = new Client( Integer.parseInt(args[0]));
-//        client.dfs.writeMetaData(metadata);
 
         Scanner in = new Scanner(System.in);
 
@@ -145,6 +144,9 @@ public class Client
                     String newName = array[2];
                     client.dfs.mv(fileName, newName);
                     break;
+                case "MapReduce":
+                    fileName = array[1];
+                    client.dfs.runMapReduce(fileName);
                 default:
                     System.out.println("Command " + dfsCommand + " does not exist.");
                     break;
