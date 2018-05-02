@@ -76,6 +76,7 @@ public class Client
         System.out.println("head (file name)");
         System.out.println("append (file name) (page)");
         System.out.println("move (file name) (new filename)");
+        System.out.println("MR (filename)");
 
 
         while(true) {
@@ -144,7 +145,7 @@ public class Client
                     String newName = array[2];
                     client.dfs.mv(fileName, newName);
                     break;
-                case "MapReduce":
+                case "MR":
                     fileName = array[1];
                     client.dfs.runMapReduce(fileName);
                 default:

@@ -1,5 +1,6 @@
 package LAB3;
 
+import java.math.BigInteger;
 import java.rmi.*;
 import java.rmi.registry.*;
 import java.rmi.server.*;
@@ -7,10 +8,10 @@ import java.util.*;
 import java.io.*;
 
 
-public class Chord extends UnicastRemoteObject implements ChordMessageInterface {
+public class Chord extends UnicastRemoteObject implements ChordMessageInterface, Serializable {
     public static final int M = 2;
     Long n = 0L;
-    Set<Long> set;
+    Set<Long> set = new HashSet<Long>();
 
     Registry registry;    // rmi registry for lookup the remote objects.
     ChordMessageInterface successor;
@@ -18,8 +19,8 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface 
     ChordMessageInterface[] finger;
     int nextFinger;
     long guid;        // GUID (i)
-    TreeMap BMap = new TreeMap<Long, List<String>>();
-    TreeMap BReduce = new TreeMap<Long, String>();
+    TreeMap<Long, List<String>> BMap = new TreeMap<Long, List<String>>();
+    TreeMap <Long, String>  BReduce = new TreeMap<Long, String>();
 
 
     public Boolean isKeyInSemiCloseInterval(long key, long key1, long key2) {
@@ -271,11 +272,13 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface 
     public void emitMap(Long key, String value) throws RemoteException {
         if (isKeyInOpenInterval(key, predecessor.getId(), successor.getId())) {
             // insert in the BMap. Allows repetition
+            List<String> list = new ArrayList<String>();
+            list.add(value);
             if (BMap.containsKey(key)) {
-                List<String> list = new ArrayList<String>();
                 BMap.put(key, list);
             }
-            BMap.put(key, value);
+            System.out.println("chord emitMap: list ");
+            BMap.put(key, list);
 
         } else {
             ChordMessageInterface peer = this.locateSuccessor(key);
@@ -285,6 +288,7 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface 
 
 
     public void setWorkingPeer(Long page) throws IOException {
+        System.out.println("Chord setworker: " + page);
         set.add(page);
     }
 
@@ -306,15 +310,17 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface 
             Thread thread = new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    List<String> values = new ArrayList<String>();
-                    for (String s : values){
-                        values.add(s);
-                    }
-                    try {
-                        reducer.reduce(source, values, context);
+                    for(Map.Entry<Long,List<String>> entry : BMap.entrySet()) {
+                        Long key = entry.getKey();
+                        List<String> values = entry.getValue();
+                        String strings[] = new String[values.size()];
+                        values.toArray(strings);
+                        try {
+                            reducer.reduce(source, values, context);
 
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
             });
@@ -340,16 +346,18 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface 
         }
     }
 
-    public void mapContext(Long page, MapReduceInterface mapper, ChordMessageInterface context) throws IOException {
+    public void mapContext(Long page, MapReduceInterface mapper, ChordMessageInterface context) throws IOException, RemoteException {
         //TODO: read the page line by line, but do we need a file name here
         String content = "";
-        FileOutputStream output = new FileOutputStream("Output.File");
-        InputStream stream = context.get(page);
-        while (stream.available() > 0)
-            output.write(stream.read());
-        output.close();
+        String fileName = "./" + guid + "/repository/" + page;
+//        FileOutputStream output = new FileOutputStream(fileName);
+//        InputStream stream = context.get(page);
+//        while (stream.available() > 0)
+//            output.write(stream.read());
+//        output.close();
 
-        FileReader fileReader = new FileReader("test");
+        //get the file name
+        FileReader fileReader = new FileReader(fileName);
 
         // Always wrap FileReader in BufferedReader.
         BufferedReader bufferedReader = new BufferedReader(fileReader);
@@ -361,11 +369,8 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface 
             Thread thread = new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    List<String> values = new ArrayList<>();
-                    for (String s : values){
-                        values.add(s);
-                    }
                     try {
+                        BigInteger bgInt = new BigInteger(key);
                         mapper.map(Long.parseLong(key), value, context);
 
                     } catch (IOException e) {
