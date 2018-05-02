@@ -261,6 +261,7 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
     public void emitReduce(Long key, String value) throws RemoteException {
         if (isKeyInOpenInterval(key, predecessor.getId(), successor.getId())) {
             // insert in the BReduce
+            System.out.println("chord emitReduce: " + key + " " + value);
             BReduce.put(key, value);
         } else {
             ChordMessageInterface peer = this.locateSuccessor(key);
@@ -277,8 +278,9 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
             if (BMap.containsKey(key)) {
                 BMap.put(key, list);
             }
-//            System.out.println("chord emitMap: " + key);
+            System.out.println("chord emitMap: " + key);
             BMap.put(key, list);
+            System.out.println("BMap length: " + BMap.size());
 
         } else {
             ChordMessageInterface peer = this.locateSuccessor(key);
@@ -295,48 +297,62 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
     public void completePeer(Long page, Long n) throws RemoteException {
         this.n += n;
         set.remove(page);
+        System.out.println("completePeer: page completed: " + page + " set size: " + set.size());
+
     }
 
     public Boolean isPhaseCompleted() throws IOException {
-        if (set.isEmpty())
+        System.out.println("isPhaseCompleted");
+        if (set.isEmpty()) {
+            System.out.println("chord isPhaseCompleted turns TRUE");
             return true;
+        }
         return false;
     }
 
     public void reduceContext(Long source, MapReduceInterface reducer, ChordMessageInterface context) throws IOException {
         // TODO: create a thread run and then return immediately
-        if(source != guid){
+        if(source != guid) {
+            System.out.println("in reduceContext");
             successor.reduceContext(source, reducer, context);
+        }
             Thread thread = new Thread(new Runnable(){
                 @Override
                 public void run() {
+                    Long counter = 0L;
+                    System.out.println("reduceContext: BMap length: " + BMap.size());
                     for(Map.Entry<Long,List<String>> entry : BMap.entrySet()) {
                         Long key = entry.getKey();
                         List<String> values = entry.getValue();
                         String strings[] = new String[values.size()];
                         values.toArray(strings);
                         try {
-                            System.out.println("chord reduceContext: " + source);
-                            reducer.reduce(source, values, context);
+                            System.out.println("chord reduceContext: " + key);
+                            counter ++;
+                            reducer.reduce(key, values, context);
 
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
                     }
+//                    try {
+//                        System.out.println("reduceContext: completePeer: page " + source);
+//                        context.completePeer(source, counter);
+//                    } catch (RemoteException e) {
+//                        e.printStackTrace();
+//                    }
                 }
             });
             thread.start();
-        }
-//        Note: It must exist a metafile called "fileName reduce" where fileName
-//        is the original logical file that you are sorting with n pages. Each
-//        peer creates a page (guid) with the data in BReduce and insert into
-//        "fileName reduce".
+
         saveReduceFile(source);
     }
 
     public void saveReduceFile(Long source) throws IOException {
-////        store Breduce in file
-        FileWriter file = new FileWriter("fileName.reduce");
+//        store Breduce in file
+        String fileName = "./" + guid + "/repository/" + (guid - 1);
+
+        FileWriter file = new FileWriter(fileName);
         Collection entreSet = BReduce.entrySet();
         Iterator it = entreSet.iterator();
         //put everything in BReduce in one Page
@@ -346,46 +362,56 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
         if(source != guid){
             successor.saveReduceFile(source);
         }
+        file.close();
     }
 
     public void mapContext(Long page, MapReduceInterface mapper, ChordMessageInterface context) throws IOException, RemoteException {
         //TODO: read the page line by line, but do we need a file name here
-        String content = "";
-        String fileName = "./" + guid + "/repository/" + page;
-//        FileOutputStream output = new FileOutputStream(fileName);
-//        InputStream stream = context.get(page);
-//        while (stream.available() > 0)
-//            output.write(stream.read());
-//        output.close();
+        Thread threadOut = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                String content = "";
+                String fileName = "./" + guid + "/repository/" + page;
 
-        //get the file name
-        FileReader fileReader = new FileReader(fileName);
+                //get the file name
+                FileReader fileReader;
+                Long counter = 0L;
+                try {
+                    fileReader = new FileReader(fileName);
+                    // Always wrap FileReader in BufferedReader.
+                    BufferedReader bufferedReader = new BufferedReader(fileReader);
+                    while ((content = bufferedReader.readLine()) != null) {
+                        counter ++;
+                        String split[] = content.split(";");
+                        String key = split[0];
+                        String value = split[1];
+//                        Thread thread = new Thread(new Runnable() {
+//                            @Override
+//                            public void run() {
 
-        // Always wrap FileReader in BufferedReader.
-        BufferedReader bufferedReader = new BufferedReader(fileReader);
-        while ((content = bufferedReader.readLine()) != null) {
-            String split[] = content.split(";");
+                                try {
+                                    BigInteger bgInt = new BigInteger(key);
+//                                    System.out.println("chord mapContext: " + key);
+                                    mapper.map(bgInt.longValue(), value, context);
 
-            String key = split[0];
-            String value = split[1];
-            Thread thread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        BigInteger bgInt = new BigInteger(key);
-                        System.out.println("chord mapContext: " + key);
-                        mapper.map(bgInt.longValue(), value, context);
-
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+//                        });
+//                        thread.start();
+                    } catch (Exception e1) {
+                    e1.printStackTrace();
                     }
+                try {
+//                       System.out.println("mapContext: completePeer: page " + page);
+                    context.completePeer(page, counter);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
                 }
-            });
-            thread.start();
-        }
-//              mapper:map(key; value; context). When it has read the complete file,
-//                it calls context:completeP eer(page; n) where n is the number of rows.
-//                You have to create a new thread to avoid blocking. Observe that con-
-//                text is the instance of the coordinator or initiator.
+            }
+        });
+
+        threadOut.start();
     }
 }

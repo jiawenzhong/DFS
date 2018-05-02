@@ -148,6 +148,7 @@ public class Client
                 case "MR":
                     fileName = array[1];
                     client.dfs.runMapReduce(fileName);
+                    break;
                 default:
                     System.out.println("Command " + dfsCommand + " does not exist.");
                     break;
