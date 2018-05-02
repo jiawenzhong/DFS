@@ -277,7 +277,7 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
             if (BMap.containsKey(key)) {
                 BMap.put(key, list);
             }
-            System.out.println("chord emitMap: list ");
+//            System.out.println("chord emitMap: " + key);
             BMap.put(key, list);
 
         } else {
@@ -303,11 +303,11 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
         return false;
     }
 
-    public void reduceContext(Long source, MapReduceInterface reducer, ChordMessageInterface context) throws RemoteException {
+    public void reduceContext(Long source, MapReduceInterface reducer, ChordMessageInterface context) throws IOException {
         // TODO: create a thread run and then return immediately
         if(source != guid){
             successor.reduceContext(source, reducer, context);
-            Thread thread = new Thread(new Runnable() {
+            Thread thread = new Thread(new Runnable(){
                 @Override
                 public void run() {
                     for(Map.Entry<Long,List<String>> entry : BMap.entrySet()) {
@@ -316,6 +316,7 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
                         String strings[] = new String[values.size()];
                         values.toArray(strings);
                         try {
+                            System.out.println("chord reduceContext: " + source);
                             reducer.reduce(source, values, context);
 
                         } catch (IOException e) {
@@ -330,6 +331,7 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
 //        is the original logical file that you are sorting with n pages. Each
 //        peer creates a page (guid) with the data in BReduce and insert into
 //        "fileName reduce".
+        saveReduceFile(source);
     }
 
     public void saveReduceFile(Long source) throws IOException {
@@ -371,7 +373,8 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
                 public void run() {
                     try {
                         BigInteger bgInt = new BigInteger(key);
-                        mapper.map(Long.parseLong(key), value, context);
+                        System.out.println("chord mapContext: " + key);
+                        mapper.map(bgInt.longValue(), value, context);
 
                     } catch (IOException e) {
                         e.printStackTrace();
