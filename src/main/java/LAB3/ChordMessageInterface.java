@@ -21,8 +21,8 @@ public interface ChordMessageInterface extends Remote
     void setWorkingPeer(Long page) throws IOException;
     void completePeer(Long page, Long n) throws RemoteException;
     Boolean isPhaseCompleted() throws IOException;
-    void reduceContext(Long source, MapReduceInterface reducer, ChordMessageInterface context) throws RemoteException;
-    void mapContext(Long page, MapReduceInterface mapper, ChordMessageInterface context) throws IOException;
+    void reduceContext(Long source, MapReduceInterface reducer, ChordMessageInterface context) throws IOException;
+    void mapContext(Long page, MapReduceInterface mapper, ChordMessageInterface context) throws IOException, RemoteException;
 
     void emitMap(Long key, String value) throws RemoteException;
     void emitReduce(Long page, String value) throws RemoteException;

@@ -344,6 +344,7 @@ public class DFS
         MetaFile metafile = m.getFileByName(filename);
         LAB3.ChordMessageInterface peer = null;
         for( Page page : metafile.getListOfPages()) {
+            System.out.println("dfs getGuid(): " + page.getGuid());
             chord.setWorkingPeer(page.getGuid());
             // TODO: what is peer? use this in here to get the peer?
             //gitLAB3.ChordMessageInterface peer = chord.locateSuccessor(page.getGuid());
