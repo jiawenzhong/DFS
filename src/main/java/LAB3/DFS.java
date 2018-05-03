@@ -9,6 +9,8 @@ import java.math.BigInteger;
 import java.rmi.RemoteException;
 import java.rmi.ServerException;
 import java.security.*;
+
+import static java.lang.Thread.sleep;
 // import a json package
 
 
@@ -354,9 +356,15 @@ public class DFS
             // TODO: peer doesn't have mapContext, Context object does
              peer.mapContext(page.getGuid(), mapreduce, chord);
         }
-        while(!chord.isPhaseCompleted());
+        System.out.println("Executing mapContext....");
+        while(!chord.isPhaseCompleted()){
+            sleep(1000);
+        };
+        System.out.println("Starting mapReduce....");
+
         // reduce phase
         chord.successor.reduceContext(guid, mapreduce, chord);
+        System.out.println("Ending mapReduce....");
     }
 
     //TODO: function to create a page for every peer's tree, similar to reduceContext()

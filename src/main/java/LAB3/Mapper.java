@@ -28,6 +28,6 @@ public class Mapper implements MapReduceInterface {
     public void reduce(Long key, List<String > values, ChordMessageInterface context) throws IOException
     {
         String word = values.get(0).split(":")[0];
-        context.emitMap(key, word +":"+ values.size());
+        context.emitReduce(key, word +":"+ values.size());
     }
 }
