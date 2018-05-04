@@ -358,13 +358,17 @@ public class DFS
         System.out.println("Executing mapContext....");
         while(!chord.isPhaseCompleted()){
             sleep(1000);
-        };
+        }
         System.out.println("Starting mapReduce....");
 
         // reduce phase
         chord.successor.reduceContext(guid, mapreduce, chord);
-        System.out.println("Ending mapReduce....");
-//        chord.successor.saveReduceFile(guid);
+        System.out.println("DFS setWorkingPeer - saveReduce: " + guid);
+        chord.setWorkingPeer(guid);
+        while(!chord.isPhaseCompleted()){
+            sleep(1000);
+        }
+        chord.successor.saveReduceFile(guid);
     }
 
     //TODO: function to create a page for every peer's tree, similar to reduceContext()

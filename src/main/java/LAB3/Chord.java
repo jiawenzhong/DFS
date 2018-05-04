@@ -12,6 +12,7 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
     public static final int M = 2;
     Long n = 0L;
     Set<Long> set = new HashSet<Long>();
+    final ChordMessageInterface c = this;
 
     Registry registry;    // rmi registry for lookup the remote objects.
     ChordMessageInterface successor;
@@ -304,7 +305,6 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
     }
 
     public Boolean isPhaseCompleted() throws RemoteException, IOException {
-        System.out.println("isPhaseCompleted");
         if (set.isEmpty()) {
             System.out.println("chord isPhaseCompleted turns TRUE");
             return true;
@@ -318,6 +318,7 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
             System.out.println("in reduceContext");
             successor.reduceContext(source, reducer, context);
         }
+
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -339,19 +340,13 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
                 }
                 System.out.println("Finish mapReduce.");
                 try {
-                    System.out.println("Saving Reduce file.");
-                    saveReduceFile(source);
-                } catch (IOException e) {
+                   System.out.println("mapReduce: completePeer: guid " + guid);
+                    c.completePeer(guid, 0L);
+                } catch (RemoteException e) {
                     e.printStackTrace();
                 }
-
-//                    try {
-//                        System.out.println("reduceContext: completePeer: page " + source);
-//                        context.completePeer(source, counter);
-//                    } catch (RemoteException e) {
-//                        e.printStackTrace();
-//                    }
             }
+
         });
         thread.run();
 
@@ -382,6 +377,11 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
                 String content = "";
                 String fileName = "./" + guid + "/repository/" + page;
                 System.out.println("Processing " + fileName);
+//                try {
+//                    context.setWorkingPeer(page);
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
 
                 //get the file name
                 FileReader fileReader;
@@ -402,7 +402,7 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
                                 try {
                                     BigInteger bgInt = new BigInteger(key);
                                     System.out.println("chord mapContext: " + bgInt.longValue());
-                                    mapper.map(bgInt.longValue(), value, context);
+                                    mapper.map(bgInt.longValue(), value, c);
 
                                 } catch (IOException e) {
                                     e.printStackTrace();
