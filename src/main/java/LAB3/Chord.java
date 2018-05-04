@@ -259,7 +259,7 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
     }
 
     public void emitReduce(Long key, String value) throws RemoteException {
-        if (isKeyInOpenInterval(key, predecessor.getId(), successor.getId())) {
+        if (isKeyInSemiCloseInterval(key, predecessor.getId(), successor.getId())) {
             // insert in the BReduce
             System.out.println("chord emitReduce: " + key + " " + value);
             BReduce.put(key, value);
@@ -271,25 +271,27 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
     }
 
     public void emitMap(Long key, String value) throws RemoteException {
-        if (isKeyInOpenInterval(key, predecessor.getId(), successor.getId())) {
+        if (isKeyInSemiCloseInterval(key, predecessor.getId(), successor.getId())) {
             // insert in the BMap. Allows repetition
-            List<String> list = new ArrayList<String>();
-            list.add(value);
+            System.out.println("chord emitMap: " + key);
             if (BMap.containsKey(key)) {
+                BMap.get(key).add(value);
+            }else {
+                List<String> list = new ArrayList<String>();
+                list.add(value);
                 BMap.put(key, list);
             }
-            System.out.println("chord emitMap: " + key);
-            BMap.put(key, list);
             System.out.println("BMap length: " + BMap.size());
 
         } else {
             ChordMessageInterface peer = this.locateSuccessor(key);
+            System.out.println("emitMap: peer.guid: " + peer.getId());
             peer.emitMap(key, value);
         }
     }
 
 
-    public void setWorkingPeer(Long page) throws IOException {
+    public void setWorkingPeer(Long page) throws RemoteException,IOException {
         System.out.println("Chord setworker: " + page);
         set.add(page);
     }
@@ -301,7 +303,7 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
 
     }
 
-    public Boolean isPhaseCompleted() throws IOException {
+    public Boolean isPhaseCompleted() throws RemoteException, IOException {
         System.out.println("isPhaseCompleted");
         if (set.isEmpty()) {
             System.out.println("chord isPhaseCompleted turns TRUE");
@@ -310,68 +312,76 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
         return false;
     }
 
-    public void reduceContext(Long source, MapReduceInterface reducer, ChordMessageInterface context) throws IOException {
+    public void reduceContext(Long source, MapReduceInterface reducer, ChordMessageInterface context) throws RemoteException, IOException {
         // TODO: create a thread run and then return immediately
-        if(source != guid) {
+        if (source != guid) {
             System.out.println("in reduceContext");
             successor.reduceContext(source, reducer, context);
         }
-            Thread thread = new Thread(new Runnable(){
-                @Override
-                public void run() {
-                    Long counter = 0L;
-                    System.out.println("reduceContext: BMap length: " + BMap.size());
-                    for(Map.Entry<Long,List<String>> entry : BMap.entrySet()) {
-                        Long key = entry.getKey();
-                        List<String> values = entry.getValue();
-                        String strings[] = new String[values.size()];
-                        values.toArray(strings);
-                        try {
-                            System.out.println("chord reduceContext: " + key);
-                            counter ++;
-                            reducer.reduce(key, values, context);
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+//                    Long counter = 0L;
+                System.out.println("reduceContext: BMap length: " + BMap.size());
+                for (Map.Entry<Long, List<String>> entry : BMap.entrySet()) {
+                    Long key = entry.getKey();
+                    List<String> values = entry.getValue();
+                    String strings[] = new String[values.size()];
+                    values.toArray(strings);
+                    try {
+                        System.out.println("chord reduceContext: " + key);
+//                            counter++;
+                        reducer.reduce(key, values, context);
 
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
+                }
+                System.out.println("Finish mapReduce.");
+                try {
+                    System.out.println("Saving Reduce file.");
+                    saveReduceFile(source);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
 //                    try {
 //                        System.out.println("reduceContext: completePeer: page " + source);
 //                        context.completePeer(source, counter);
 //                    } catch (RemoteException e) {
 //                        e.printStackTrace();
 //                    }
-                }
-            });
-            thread.start();
+            }
+        });
+        thread.run();
 
-        saveReduceFile(source);
     }
 
-    public void saveReduceFile(Long source) throws IOException {
-//        store Breduce in file
-        String fileName = "./" + guid + "/repository/" + (guid - 1);
-
-        FileWriter file = new FileWriter(fileName);
-        Collection entreSet = BReduce.entrySet();
-        Iterator it = entreSet.iterator();
-        //put everything in BReduce in one Page
-        while(it.hasNext()){
-            file.append(it.next().toString());
-        }
+    public void saveReduceFile(Long source) throws RemoteException, IOException {
         if(source != guid){
             successor.saveReduceFile(source);
+        }
+        //store Breduce in file
+        String fileName = "./" + guid + "/repository/" + (guid - 1);
+        FileWriter file = new FileWriter(fileName);
+
+        for(Map.Entry<Long, String> entry : BReduce.entrySet()) {
+            Long key = entry.getKey();
+            String value = entry.getValue();
+            file.write(key + ";" + value + "\n");
+
         }
         file.close();
     }
 
-    public void mapContext(Long page, MapReduceInterface mapper, ChordMessageInterface context) throws IOException, RemoteException {
+    public void mapContext(Long source, Long page, MapReduceInterface mapper, ChordMessageInterface context) throws IOException, RemoteException {
         //TODO: read the page line by line, but do we need a file name here
         Thread threadOut = new Thread(new Runnable() {
             @Override
             public void run() {
                 String content = "";
                 String fileName = "./" + guid + "/repository/" + page;
+                System.out.println("Processing " + fileName);
 
                 //get the file name
                 FileReader fileReader;
@@ -391,7 +401,7 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
 
                                 try {
                                     BigInteger bgInt = new BigInteger(key);
-//                                    System.out.println("chord mapContext: " + key);
+                                    System.out.println("chord mapContext: " + bgInt.longValue());
                                     mapper.map(bgInt.longValue(), value, context);
 
                                 } catch (IOException e) {
@@ -412,6 +422,6 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
             }
         });
 
-        threadOut.start();
+        threadOut.run();
     }
 }

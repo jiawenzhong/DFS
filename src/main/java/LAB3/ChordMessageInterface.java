@@ -3,7 +3,7 @@ package LAB3;
 import java.rmi.*;
 import java.io.*;
 
-public interface ChordMessageInterface extends Remote
+public interface ChordMessageInterface extends Remote, Serializable
 {
     ChordMessageInterface getPredecessor()  throws RemoteException;
     ChordMessageInterface locateSuccessor(long key) throws RemoteException;
@@ -18,15 +18,15 @@ public interface ChordMessageInterface extends Remote
     InputStream get(long guidObject) throws IOException, RemoteException;
     void delete(long guidObject) throws IOException, RemoteException;
 
-    void setWorkingPeer(Long page) throws IOException;
+    void setWorkingPeer(Long page) throws RemoteException, IOException;
     void completePeer(Long page, Long n) throws RemoteException;
-    Boolean isPhaseCompleted() throws IOException;
-    void reduceContext(Long source, MapReduceInterface reducer, ChordMessageInterface context) throws IOException;
-    void mapContext(Long page, MapReduceInterface mapper, ChordMessageInterface context) throws IOException, RemoteException;
+    Boolean isPhaseCompleted() throws RemoteException, IOException;
+    void reduceContext(Long source, MapReduceInterface reducer, ChordMessageInterface context) throws RemoteException, IOException;
+    void mapContext(Long source, Long page, MapReduceInterface mapper, ChordMessageInterface context) throws IOException, RemoteException;
 
     void emitMap(Long key, String value) throws RemoteException;
     void emitReduce(Long page, String value) throws RemoteException;
 
-    void saveReduceFile(Long source) throws IOException;
+    void saveReduceFile(Long source) throws RemoteException, IOException;
 }
 

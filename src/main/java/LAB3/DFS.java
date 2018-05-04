@@ -352,7 +352,8 @@ public class DFS
             peer = chord.locateSuccessor(page.getGuid());
             // TODO: let peer be the process responsible for storing page
             // TODO: peer doesn't have mapContext, Context object does
-             peer.mapContext(page.getGuid(), mapreduce, chord);
+            System.out.println("DFS: page.guid: " + peer.getId());
+            peer.mapContext(guid, page.getGuid(), mapreduce, chord);
         }
         System.out.println("Executing mapContext....");
         while(!chord.isPhaseCompleted()){
@@ -363,6 +364,7 @@ public class DFS
         // reduce phase
         chord.successor.reduceContext(guid, mapreduce, chord);
         System.out.println("Ending mapReduce....");
+//        chord.successor.saveReduceFile(guid);
     }
 
     //TODO: function to create a page for every peer's tree, similar to reduceContext()
