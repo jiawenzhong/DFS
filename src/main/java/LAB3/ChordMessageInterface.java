@@ -28,5 +28,8 @@ public interface ChordMessageInterface extends Remote, Serializable
     void emitReduce(Long page, String value) throws RemoteException;
 
     void saveReduceFile(Long source) throws RemoteException, IOException;
+
+    void gatherFiles(String fileName, DFS dfs, Long source) throws Exception;
+
 }
 

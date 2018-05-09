@@ -47,11 +47,12 @@ import static java.lang.Thread.sleep;
  */
 
 
-public class DFS
+public class DFS implements Serializable
 {
     int port;
     Chord  chord;
     Long guid;
+    DFS thisDFS = this;
 
     public long md5(String objectName)
     {
@@ -339,6 +340,7 @@ public class DFS
     }
 
     public void runMapReduce(String filename) throws Exception {
+        String reduceFile = "fileName.Reduce.txt";
         // TODO: do we need a mapreduce class?
         Metadata m = readMetaData();
         MapReduceInterface mapreduce = new Mapper();
@@ -362,13 +364,19 @@ public class DFS
         System.out.println("Starting mapReduce....");
 
         // reduce phase
-        chord.successor.reduceContext(guid, mapreduce, chord);
+        chord.successor.reduceContext(chord.getId(), mapreduce, chord);
         System.out.println("DFS setWorkingPeer - saveReduce: " + guid);
-        chord.setWorkingPeer(guid);
+
+        //call save file
         while(!chord.isPhaseCompleted()){
             sleep(1000);
         }
-        chord.successor.saveReduceFile(guid);
+        chord.successor.saveReduceFile(chord.getId());
+
+        //put pages in one file
+        chord.successor.gatherFiles(reduceFile, thisDFS, chord.getId());
+
+
     }
 
     //TODO: function to create a page for every peer's tree, similar to reduceContext()
