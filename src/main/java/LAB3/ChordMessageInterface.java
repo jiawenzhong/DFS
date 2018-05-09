@@ -5,6 +5,7 @@ import java.io.*;
 
 public interface ChordMessageInterface extends Remote, Serializable
 {
+    ChordMessageInterface getSuccessor() throws RemoteException;
     ChordMessageInterface getPredecessor()  throws RemoteException;
     ChordMessageInterface locateSuccessor(long key) throws RemoteException;
     ChordMessageInterface closestPrecedingNode(long key) throws RemoteException;
@@ -12,8 +13,9 @@ public interface ChordMessageInterface extends Remote, Serializable
     void notify(ChordMessageInterface j) throws RemoteException;
     boolean isAlive() throws RemoteException;
     long getId() throws RemoteException;
-    
-    
+
+    void Print() throws RemoteException;
+
     void put(long guidObject, InputStream inputStream) throws IOException, RemoteException;
     InputStream get(long guidObject) throws IOException, RemoteException;
     void delete(long guidObject) throws IOException, RemoteException;
@@ -27,9 +29,9 @@ public interface ChordMessageInterface extends Remote, Serializable
     void emitMap(Long key, String value) throws RemoteException;
     void emitReduce(Long page, String value) throws RemoteException;
 
-    void saveReduceFile(Long source) throws RemoteException, IOException;
+    void saveReduceFile(Long source,ChordMessageInterface context) throws RemoteException, IOException;
 
-    void gatherFiles(String fileName, DFS dfs, Long source) throws Exception;
+    void gatherFiles(String fileName, LAB3.DFS dfs, ChordMessageInterface context, Long source) throws Exception;
 
 }
 

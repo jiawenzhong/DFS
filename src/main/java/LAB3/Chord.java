@@ -13,6 +13,7 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
     Long n = 0L;
     Set<Long> set = new HashSet<Long>();
     final ChordMessageInterface c = this;
+    LAB3.DFS cdfs;
 
     Registry registry;    // rmi registry for lookup the remote objects.
     ChordMessageInterface successor;
@@ -23,6 +24,10 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
     TreeMap<Long, List<String>> BMap = new TreeMap<Long, List<String>>();
     TreeMap <Long, String>  BReduce = new TreeMap<Long, String>();
 
+
+    public ChordMessageInterface getSuccessor() throws RemoteException {
+        return successor;
+    }
 
     public Boolean isKeyInSemiCloseInterval(long key, long key1, long key2) {
         if (key1 < key2)
@@ -239,7 +244,7 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
         }
     }
 
-    void Print() {
+    public void Print() throws RemoteException{
         int i;
         try {
             if (successor != null)
@@ -262,7 +267,7 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
     public void emitReduce(Long key, String value) throws RemoteException {
         if (isKeyInSemiCloseInterval(key, predecessor.getId(), successor.getId())) {
             // insert in the BReduce
-            System.out.println("chord emitReduce: " + key + " " + value);
+//            System.out.println("chord emitReduce: " + key + " " + value);
             BReduce.put(key, value);
         } else {
             ChordMessageInterface peer = this.locateSuccessor(key);
@@ -274,7 +279,7 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
     public void emitMap(Long key, String value) throws RemoteException {
         if (isKeyInSemiCloseInterval(key, predecessor.getId(), successor.getId())) {
             // insert in the BMap. Allows repetition
-            System.out.println("chord emitMap: " + key);
+//            System.out.println("chord emitMap: " + key);
             if (BMap.containsKey(key)) {
                 BMap.get(key).add(value);
             }else {
@@ -282,11 +287,11 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
                 list.add(value);
                 BMap.put(key, list);
             }
-            System.out.println("BMap length: " + BMap.size());
+//            System.out.println("BMap length: " + BMap.size());
 
         } else {
             ChordMessageInterface peer = this.locateSuccessor(key);
-            System.out.println("emitMap: peer.guid: " + peer.getId());
+//            System.out.println("emitMap: peer.guid: " + peer.getId());
             peer.emitMap(key, value);
         }
     }
@@ -300,7 +305,7 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
     public void completePeer(Long page, Long n) throws RemoteException {
         this.n += n;
         set.remove(page);
-        System.out.println("completePeer: page completed: " + page + " set size: " + set.size());
+//        System.out.println("completePeer: page completed: " + page + " set size: " + set.size());
 
     }
 
@@ -328,14 +333,14 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                System.out.println("reduceContext: BMap length: " + BMap.size());
+//                System.out.println("reduceContext: BMap length: " + BMap.size());
                 for (Map.Entry<Long, List<String>> entry : BMap.entrySet()) {
                     Long key = entry.getKey();
                     List<String> values = entry.getValue();
                     String strings[] = new String[values.size()];
                     values.toArray(strings);
                     try {
-                        System.out.println("chord reduceContext: " + key);
+//                        System.out.println("chord reduceContext: " + key);
 //                            counter++;
                         reducer.reduce(key, values, c);
 
@@ -343,7 +348,7 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
                         e.printStackTrace();
                     }
                 }
-                System.out.println("reducedContext BReduce: " + BReduce.size());
+//                System.out.println("reducedContext BReduce: " + BReduce.size());
 
                 try {
                     context.completePeer(getId(), 0L);
@@ -356,7 +361,7 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
 
                 System.out.println("Finish mapReduce.");
                 try {
-                   System.out.println("mapReduce: completePeer: guid " + guid);
+//                   System.out.println("mapReduce: completePeer: guid " + guid);
                     c.completePeer(guid, 0L);
                 } catch (RemoteException e) {
                     e.printStackTrace();
@@ -368,24 +373,38 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
 
     }
 
-    public void saveReduceFile(Long source) throws RemoteException, IOException {
+    public void saveReduceFile(Long source, ChordMessageInterface context) throws RemoteException, IOException {
         if(source != getId()){
             System.out.println("----------------------------------------------------");
-            successor.saveReduceFile(source);
+            successor.saveReduceFile(source, context);
+        }
+        try {
+            context.setWorkingPeer(getId());
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         //store Breduce in file
         System.out.println("saveReduceFile: guid - " + guid);
 
         String fileName = "./" + guid + "/repository/" + (guid - 1);
+        String localFile = "" + (guid - 1);
+        FileWriter file2 = new FileWriter(localFile);
         FileWriter file = new FileWriter(fileName);
 
         for(Map.Entry<Long, String> entry : BReduce.entrySet()) {
             Long key = entry.getKey();
             String value = entry.getValue();
             file.write(key + ";" + value + "\n");
+            file2.write(key + ";" + value + "\n");
 
         }
         file.close();
+        file2.close();
+        try {
+            context.completePeer(getId(), 0L);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
     }
 
     public void mapContext(Long source, Long page, MapReduceInterface mapper, ChordMessageInterface context) throws IOException, RemoteException {
@@ -420,7 +439,7 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
 
                         try {
                             BigInteger bgInt = new BigInteger(key);
-                            System.out.println("chord mapContext: " + bgInt.longValue());
+//                            System.out.println("chord mapContext: " + bgInt.longValue());
                             mapper.map(bgInt.longValue(), value, c);
 
                         } catch (IOException e) {
@@ -443,15 +462,15 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
         threadOut.run();
     }
 
-    public void gatherFiles(String fileName, DFS dfs, Long source) throws Exception {
+    public void gatherFiles(String fileName, LAB3.DFS dfs, ChordMessageInterface context, Long source) throws Exception {
         if (source != c.getId()) {
-            System.out.println("in reduceContext");
-            successor.gatherFiles(fileName, dfs, source);
+            System.out.println("in gatherFiles ************************************");
+            successor.gatherFiles(fileName, dfs, context, source);
         }
-        dfs.touch(fileName);
+        cdfs = dfs;
         String guidFile = ""+ (guid - 1);
         System.out.println("gatherFiles: guidFile - " + guidFile);
-        dfs.append(fileName, guidFile);
+        cdfs.append(fileName, guidFile);
 
     }
 }
