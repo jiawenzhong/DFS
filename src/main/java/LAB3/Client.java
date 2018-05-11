@@ -28,7 +28,7 @@ public class Client
                     new BufferedReader(fileReader);
 
             while((contents = bufferedReader.readLine()) != null) {
-                System.out.println("Page: "+ contents);
+                System.out.println(contents);
             }
         }
         catch (IOException e) {
@@ -42,6 +42,15 @@ public class Client
         if (args.length < 1 ) {
             throw new IllegalArgumentException("Parameter: <port>");
         }
+
+        //TODO: call runMapReduce:
+        // based on original file, create one that is sorted, touch, create new file, insert pages,
+        // insert 1 page for every peer (peer ID): have all the file in order
+        // output: every peer has a local tree, contains data in order
+        // create a file thats in the order of the peers
+        // the page of a peer contains the contents of the tree
+        // put the pages in the files in order based on the peer ID
+
 //        TODO: this used to create the file the first time around
 //        Metadata metadata = new Metadata();
 //        metadata.addFile("testFile", 0L);
@@ -54,7 +63,6 @@ public class Client
 //        metadata.addPageToFile("testFile2", 25L, 4L);
 
         Client client = new Client( Integer.parseInt(args[0]));
-//        client.dfs.writeMetaData(metadata);
 
         Scanner in = new Scanner(System.in);
 
@@ -68,6 +76,7 @@ public class Client
         System.out.println("head (file name)");
         System.out.println("append (file name) (page)");
         System.out.println("move (file name) (new filename)");
+        System.out.println("MR (filename)");
 
 
         while(true) {
@@ -135,6 +144,10 @@ public class Client
                     fileName = array[1];
                     String newName = array[2];
                     client.dfs.mv(fileName, newName);
+                    break;
+                case "MR":
+                    fileName = array[1];
+                    client.dfs.runMapReduce(fileName);
                     break;
                 default:
                     System.out.println("Command " + dfsCommand + " does not exist.");

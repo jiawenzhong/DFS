@@ -149,7 +149,7 @@ class MetaFile implements Serializable
     /**
      * retrieves a page specified
      * @param page to be retrieved
-     * @return page id TODO: validate
+     * @return page id 
      */
     public Long getPage(int page){
         return pages.get(page - 1).getGuid();
@@ -205,7 +205,7 @@ public class Metadata implements Serializable
                 return f;
             }
         }
-        return null; //TODO: handle exception in dfs
+        return null;
     }
 
     /**
