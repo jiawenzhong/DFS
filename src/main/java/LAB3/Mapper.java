@@ -14,15 +14,14 @@ public class Mapper implements MapReduceInterface {
      */
     public void map(Long key, String value, ChordMessageInterface context) throws IOException
     {
-//        for(String word : value.split(":"))
         context.emitMap(key, value);
     }
 
     /**
-     * counts the # of time the key appears
-     * @param key
-     * @param values
-     * @param context
+     * counts the number of time the key appears
+     * @param key key in map
+     * @param values value for corresponding key
+     * @param context chord message interface
      * @throws IOException
      */
     public void reduce(Long key, List<String > values, ChordMessageInterface context) throws IOException

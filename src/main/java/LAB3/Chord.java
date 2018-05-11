@@ -266,8 +266,6 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
 
     public void emitReduce(Long key, String value) throws RemoteException {
         if (isKeyInSemiCloseInterval(key, predecessor.getId(), successor.getId())) {
-            // insert in the BReduce
-//            System.out.println("chord emitReduce: " + key + " " + value);
             BReduce.put(key, value);
         } else {
             ChordMessageInterface peer = this.locateSuccessor(key);
@@ -278,8 +276,7 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
 
     public void emitMap(Long key, String value) throws RemoteException {
         if (isKeyInSemiCloseInterval(key, predecessor.getId(), successor.getId())) {
-            // insert in the BMap. Allows repetition
-//            System.out.println("chord emitMap: " + key);
+
             if (BMap.containsKey(key)) {
                 BMap.get(key).add(value);
             }else {
@@ -287,11 +284,9 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
                 list.add(value);
                 BMap.put(key, list);
             }
-//            System.out.println("BMap length: " + BMap.size());
 
         } else {
             ChordMessageInterface peer = this.locateSuccessor(key);
-//            System.out.println("emitMap: peer.guid: " + peer.getId());
             peer.emitMap(key, value);
         }
     }
@@ -305,7 +300,6 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
     public void completePeer(Long page, Long n) throws RemoteException {
         this.n += n;
         set.remove(page);
-//        System.out.println("completePeer: page completed: " + page + " set size: " + set.size());
 
     }
 
@@ -317,6 +311,14 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
         return false;
     }
 
+    /**
+     * removes duplicate keys and values
+     * @param source of where it is coming from
+     * @param reducer map reducer interface
+     * @param context chord message interface
+     * @throws RemoteException
+     * @throws IOException
+     */
     public void reduceContext(Long source, MapReduceInterface reducer, ChordMessageInterface context) throws RemoteException, IOException {
         // TODO: create a thread run and then return immediately
         if (source != c.getId()) {
@@ -327,32 +329,25 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-//                    Long counter = 0L;
                 try {
                     context.setWorkingPeer(getId());
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-//                System.out.println("reduceContext: BMap length: " + BMap.size());
                 for (Map.Entry<Long, List<String>> entry : BMap.entrySet()) {
                     Long key = entry.getKey();
                     List<String> values = entry.getValue();
                     String strings[] = new String[values.size()];
                     values.toArray(strings);
                     try {
-//                        System.out.println("chord reduceContext: " + key);
-//                            counter++;
                         reducer.reduce(key, values, c);
 
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
-//                System.out.println("reducedContext BReduce: " + BReduce.size());
-
                 try {
                     context.completePeer(getId(), 0L);
-//                    c.saveReduceFile(source);
                 } catch (RemoteException e) {
                     e.printStackTrace();
                 } catch (IOException e) {
@@ -361,7 +356,6 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
 
                 System.out.println("Finish mapReduce.");
                 try {
-//                   System.out.println("mapReduce: completePeer: guid " + guid);
                     c.completePeer(guid, 0L);
                 } catch (RemoteException e) {
                     e.printStackTrace();
@@ -373,9 +367,15 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
 
     }
 
+    /**
+     * saves the results from reduce to a file
+     * @param source of where it is coming from
+     * @param context chord message interface
+     * @throws RemoteException
+     * @throws IOException
+     */
     public void saveReduceFile(Long source, ChordMessageInterface context) throws RemoteException, IOException {
         if(source != getId()){
-            System.out.println("----------------------------------------------------");
             successor.saveReduceFile(source, context);
         }
         try {
@@ -407,6 +407,15 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
         }
     }
 
+    /**
+     * maps the keys and values to the corresponding peer (in correct range)
+     * @param source of where it is coming from
+     * @param page that contains the original content
+     * @param mapper instance of Mapper sends the keys and values
+     * @param context chord message interface
+     * @throws IOException
+     * @throws RemoteException
+     */
     public void mapContext(Long source, Long page, MapReduceInterface mapper, ChordMessageInterface context) throws IOException, RemoteException {
         //TODO: read the page line by line, but do we need a file name here
         Thread threadOut = new Thread(new Runnable() {
@@ -415,11 +424,6 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
                 String content = "";
                 String fileName = "./" + guid + "/repository/" + page;
                 System.out.println("Processing " + fileName);
-//                try {
-//                    context.setWorkingPeer(page);
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
 
                 //get the file name
                 FileReader fileReader;
@@ -433,13 +437,9 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
                         String split[] = content.split(";");
                         String key = split[0];
                         String value = split[1];
-//                        Thread thread = new Thread(new Runnable() {
-//                            @Override
-//                            public void run() {
 
                         try {
                             BigInteger bgInt = new BigInteger(key);
-//                            System.out.println("chord mapContext: " + bgInt.longValue());
                             mapper.map(bgInt.longValue(), value, c);
 
                         } catch (IOException e) {
@@ -451,7 +451,6 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
                 }
 
                 try {
-//                       System.out.println("mapContext: completePeer: page " + page);
                     context.completePeer(page, counter);
                 } catch (RemoteException e) {
                     e.printStackTrace();
@@ -462,9 +461,16 @@ public class Chord extends UnicastRemoteObject implements ChordMessageInterface,
         threadOut.run();
     }
 
+    /**
+     * gathers all the oages created from reduce for each client into one file
+     * @param fileName name of file being created
+     * @param dfs instance of DFS
+     * @param context chord message interface
+     * @param source of where it is coming from
+     * @throws Exception
+     */
     public void gatherFiles(String fileName, LAB3.DFS dfs, ChordMessageInterface context, Long source) throws Exception {
         if (source != c.getId()) {
-            System.out.println("in gatherFiles ************************************");
             successor.gatherFiles(fileName, dfs, context, source);
         }
         cdfs = dfs;

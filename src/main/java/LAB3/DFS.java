@@ -335,21 +335,23 @@ public class DFS implements Serializable, Remote {
         }
     }
 
+    /**
+     * start the map reduce algorithm called from the client
+     * @param filename name of file to run the algorithm on
+     * @throws Exception
+     */
     public void runMapReduce(String filename) throws Exception {
         String reduceFile = "Reduce";
-        // TODO: do we need a mapreduce class?
         Metadata m = readMetaData();
         MapReduceInterface mapreduce = new Mapper();
+
         // map Phases
         MetaFile metafile = m.getFileByName(filename);
         LAB3.ChordMessageInterface peer;
+
         for (Page page : metafile.getListOfPages()) {
-//            System.out.println("dfs getGuid(): " + page.getGuid());
             chord.setWorkingPeer(page.getGuid());
-            // TODO: what is peer? use this in here to get the peer?
             peer = chord.locateSuccessor(page.getGuid());
-            // TODO: let peer be the process responsible for storing page
-            // TODO: peer doesn't have mapContext, Context object does
             System.out.println("DFS: page.guid: " + peer.getId());
             peer.mapContext(guid, page.getGuid(), mapreduce, chord);
         }
